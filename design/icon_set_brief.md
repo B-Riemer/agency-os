@@ -1,7 +1,7 @@
-# Agency OS — Brief für das Agenten-Motiv-Set (Google Stitch)
+# AIgency OS — Brief für das Agenten-Motiv-Set (Google Stitch)
 
 > Ziel: ein **kohärentes, futuristisches Emblem-Set** für die Agenten-Avatare. Ein Schema, viele
-> Rollen. Wird in Agency OS als **Motiv-Bibliothek** angeboten (Auswahl beim Onboarding), mit
+> Rollen. Wird in AIgency OS als **Motiv-Bibliothek** angeboten (Auswahl beim Onboarding), mit
 > **Foto-Override** (lädt jemand ein Foto hoch, ersetzt es das Motiv).
 
 ## Stil-Vorgaben (ein Schema für alle)
@@ -45,7 +45,7 @@
 
 > Externe Agenten brauchen **kein eigenes Motiv** — die App markiert „extern" über den **orangen Ring** + Badge. Motiv folgt der Rolle.
 
-## Integration in Agency OS (so wird es eingetauscht)
+## Integration in AIgency OS (so wird es eingetauscht)
 
 1. SVGs ablegen unter `apps/web/src/assets/motifs/<schlüssel>.svg`.
 2. Im Daten-/Agenten-Objekt steht pro Agent `icon: "<schlüssel>"` (heute schon im Prototyp vorhanden).

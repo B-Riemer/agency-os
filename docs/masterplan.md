@@ -6,7 +6,7 @@ owner: BjorVik
 tags: [agency-os, plan, langdock, paperclip, architecture, roadmap]
 ---
 
-# Agency OS — Masterplan (Plan-Modus, zur Freigabe)
+# AIgency OS — Masterplan (Plan-Modus, zur Freigabe)
 
 > **Status:** Reiner Plan. Kein Produktionscode, keine App-Struktur. Ergebnis dieser Session
 > ist dieses Dokument. Bauen erst nach deiner Freigabe.
@@ -92,7 +92,7 @@ Jede Funktionsaussage ist quellengestützt. Quellen-URLs gesammelt am Ende (§Qu
 
 # PHASE 2 — Feature-Matrix & Vergleich
 
-Spalten: **Funktion | Langdock | Paperclip | Bewertung für Agency OS | Übernehmen?**
+Spalten: **Funktion | Langdock | Paperclip | Bewertung für AIgency OS | Übernehmen?**
 Legende Übernehmen: ✅ ja · ➕ angepasst/erweitert · ❌ nein/irrelevant.
 
 | Funktion | Langdock | Paperclip | Bewertung für unser Ziel | Übernehmen? |
@@ -134,7 +134,7 @@ Legende Übernehmen: ✅ ja · ➕ angepasst/erweitert · ❌ nein/irrelevant.
 
 # PHASE 3 — Synthese zur Super-App (Best-of-Merge)
 
-**Best-of-Prinzip:** Paperclip liefert das **Betriebssystem der Firma** (Org, HR, Orchestrierung, Audit, Portabilität); Langdock liefert die **Plattform-/Governance-/Wissens-Schicht** (RBAC, SSO, RAG, MCP, API, Branding). Agency OS ist die **konsolidierende Web-App**, die beides unter *einer* Personalakte und *einer* Toggle-/RBAC-Logik vereint und **externe Agenten gleichstellt**.
+**Best-of-Prinzip:** Paperclip liefert das **Betriebssystem der Firma** (Org, HR, Orchestrierung, Audit, Portabilität); Langdock liefert die **Plattform-/Governance-/Wissens-Schicht** (RBAC, SSO, RAG, MCP, API, Branding). AIgency OS ist die **konsolidierende Web-App**, die beides unter *einer* Personalakte und *einer* Toggle-/RBAC-Logik vereint und **externe Agenten gleichstellt**.
 
 **Konflikt-Entscheidungen (begründet):**
 - **Auth:** Pluggable. MVP = lokales Better-Auth-Äquivalent; Enterprise = OIDC/SAML + SCIM. *Grund:* Self-host-Einstieg darf nicht an IdP scheitern, Enterprise braucht es. → Langdock gewinnt für die Ziel-Tiefe, Paperclip-Pragmatik für MVP.
@@ -160,7 +160,7 @@ Legende Übernehmen: ✅ ja · ➕ angepasst/erweitert · ❌ nein/irrelevant.
 2. **Universelle Toggle-Engine** als eigenes Primitive mit *deterministischer Laufzeit-Durchsetzung* (Phase 5 zeigt den Mechanismus).
 3. **Typisierte Skill-`input_schema`** (JSON-Schema) — fehlt bei beiden.
 4. **Eine Akte-Oberfläche** statt verstreuter Configs — die „Personalakte" als zentrales UI-Objekt.
-5. **Zwei-Wege-MCP/A2A:** Agency OS ist gleichzeitig Konsument *und* Anbieter von Agenten/Tools.
+5. **Zwei-Wege-MCP/A2A:** AIgency OS ist gleichzeitig Konsument *und* Anbieter von Agenten/Tools.
 
 ---
 
@@ -380,10 +380,10 @@ Wegen **🔴 Befund 2** (nur `cli/`+`doc/` öffentlich, Server/UI/DB closed) gib
 
 6. **Q6 (Repo/Ort):** Neues Repo `~/dev/agency-os`, oder im Vault unter `01_Projects/agency_os/`? Plan zusätzlich als Vault-Notiz (PARA/Frontmatter)?
 7. **Q7 (Skill-`input_schema`):** JSON-Schema **Pflicht** für Skills (typsicher, etwas mehr Aufwand) oder optional?
-8. **Q8 (Lizenz):** Soll Agency OS selbst Open Source werden (beeinflusst Abhängigkeiten/Lizenzwahl)?
+8. **Q8 (Lizenz):** Soll AIgency OS selbst Open Source werden (beeinflusst Abhängigkeiten/Lizenzwahl)?
 6. **Q6 (Speicherort/Repo):** Neues Repo in `~/dev/` (z. B. `agency-os`), oder im Vault unter `01_Projects/agency_os/`? Soll der Plan zusätzlich als Vault-Notiz (PARA, Frontmatter) abgelegt werden?
 7. **Q7 (Skill-`input_schema`):** JSON-Schema als Pflicht für Skills (typsicher, mehr Aufwand) oder optional?
-8. **Q8 (Lizenz/Veröffentlichung):** Soll Agency OS selbst Open Source werden (Lizenzwahl beeinflusst Abhängigkeiten)?
+8. **Q8 (Lizenz/Veröffentlichung):** Soll AIgency OS selbst Open Source werden (Lizenzwahl beeinflusst Abhängigkeiten)?
 
 ---
 

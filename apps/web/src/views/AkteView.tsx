@@ -220,7 +220,7 @@ export function AkteView({
               <div className="ct">Origin <span className="ln" /></div>
               <div className="subh">Agent-Herkunft</div>
               <div className="kv"><span className="k">Typ</span><span className="v" style={{ color: ext ? "#ffcb96" : "#bcd3ff" }}>{ext ? "Extern" : "App-intern"}</span></div>
-              <div className="kv"><span className="k">Provider</span><span className="v">{ext ? "Eigene Runtime" : "Agency OS Runtime"}</span></div>
+              <div className="kv"><span className="k">Provider</span><span className="v">{ext ? "Eigene Runtime" : "AIgency OS Runtime"}</span></div>
               <div className="kv"><span className="k">Endpoint</span><span className="v mono" style={{ fontSize: 10 }}>{String((agent.adapterConfig as any)?.url ?? "—")}</span></div>
               <div className="kv"><span className="k">Auth</span><span className="v">{ext ? "Bearer / Token" : "Session"}</span></div>
               <div className="kv">

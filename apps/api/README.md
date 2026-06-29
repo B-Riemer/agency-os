@@ -1,6 +1,6 @@
 # @agency-os/api — NestJS (Fastify) Backend, M1
 
-Self-hosted API für Agency OS. NestJS auf Fastify (D6), Drizzle/Postgres (D4), ESM/TypeScript.
+Self-hosted API für AIgency OS. NestJS auf Fastify (D6), Drizzle/Postgres (D4), ESM/TypeScript.
 
 ## Module (M1)
 

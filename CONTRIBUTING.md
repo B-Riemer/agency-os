@@ -1,4 +1,4 @@
-# Contributing to Agency OS
+# Contributing to AIgency OS
 
 Thanks for helping build the open control plane for AI agencies. Apache-2.0.
 

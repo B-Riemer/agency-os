@@ -1,6 +1,6 @@
 <div align="center">
 
-# Agency OS
+# AIgency OS
 
 **The self-hostable control plane for running a company of AI agents.**
 
@@ -18,9 +18,9 @@ with **bring-your-own external agents** as a first-class citizen.
 Tools like **Paperclip** (org/HR/orchestration) and **Langdock** (governance/RAG/API depth) inspired this,
 but none let you run a company where **your own, external agents** — a custom runtime, an MCP server,
 a Claude/Codex CLI, an HTTP/webhook agent — are *real employees* with the same file, skills, rights,
-budget and audit trail as internal ones. Agency OS makes "bring your own agent" first class.
+budget and audit trail as internal ones. AIgency OS makes "bring your own agent" first class.
 
-Unlike LangGraph's server (Elastic-2.0 + license key + beacon), Agency OS is **Apache-2.0 with
+Unlike LangGraph's server (Elastic-2.0 + license key + beacon), AIgency OS is **Apache-2.0 with
 real, keyless, air-gappable self-hosting** — that's a feature, not an afterthought.
 
 ## Core idea: Agent = employee with a file

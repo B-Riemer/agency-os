@@ -5,6 +5,7 @@ async function j<T = any>(path: string, opts?: RequestInit): Promise<T> {
   const headers: Record<string, string> = {};
   if (opts?.body != null) headers["content-type"] = "application/json";
   const res = await fetch(BASE + path, {
+    credentials: "include", // Session-Cookie cross-origin mitsenden
     ...opts,
     headers: { ...headers, ...((opts?.headers as Record<string, string>) ?? {}) },
   });

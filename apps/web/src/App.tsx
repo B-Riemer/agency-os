@@ -76,7 +76,7 @@ export function App() {
         <div className="brand">
           <div className="logo" />
           <div>
-            <b>Agency OS</b>
+            <b>AIgency OS</b>
             <small>Command Center</small>
           </div>
         </div>
@@ -91,7 +91,7 @@ export function App() {
       <div className="main">
         <div className="top">
           <div className="switch">
-            <span className="k" /> {company?.name ?? "Agency OS"} <span style={{ color: "var(--tx3)" }}>▾</span>
+            <span className="k" /> {company?.name ?? "AIgency OS"} <span style={{ color: "var(--tx3)" }}>▾</span>
           </div>
           <div className="search"><span>⌕</span><input placeholder="Agenten suchen …" /></div>
           <div className="right">

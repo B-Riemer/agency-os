@@ -1,14 +1,14 @@
 {
   "realm": "agency",
   "enabled": true,
-  "displayName": "Agency OS",
+  "displayName": "AIgency OS",
   "sslRequired": "none",
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,
   "clients": [
     {
       "clientId": "agency-os",
-      "name": "Agency OS",
+      "name": "AIgency OS",
       "enabled": true,
       "protocol": "openid-connect",
       "publicClient": false,
@@ -27,9 +27,9 @@
       "username": "ida",
       "enabled": true,
       "emailVerified": true,
-      "email": "ehre@modulr.design",
-      "firstName": "Ida",
-      "lastName": "Ehre",
+      "email": "ai@b-riemer.dev",
+      "firstName": "B.",
+      "lastName": "Riemer",
       "credentials": [
         { "type": "password", "value": "agency", "temporary": false }
       ]

@@ -7,7 +7,7 @@ const TYPES = [
   { k: "mcp", i: "plug-connected", t: "MCP-Server", d: "Model-Context-Protocol" },
   { k: "openai", i: "api", t: "OpenAI-kompatibel", d: "/v1/chat/completions" },
   { k: "claude_local", i: "robot", t: "Claude-Agent", d: "Anthropic / Claude-Code" },
-  { k: "internal", i: "sparkles", t: "App-intern", d: "In Agency OS erstellt" },
+  { k: "internal", i: "sparkles", t: "App-intern", d: "In AIgency OS erstellt" },
 ];
 
 export function OnboardWizard({

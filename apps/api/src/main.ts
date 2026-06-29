@@ -6,19 +6,20 @@ import { FastifyAdapter, type NestFastifyApplication } from "@nestjs/platform-fa
 import { AppModule } from "./app.module.js";
 import { AllExceptionsFilter } from "./common/all-exceptions.filter.js";
 
-// Agency OS API — NestJS auf Fastify (D6). Self-hosted, model-agnostisch.
+// AIgency OS API — NestJS auf Fastify (D6). Self-hosted, model-agnostisch.
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter(),
   );
-  app.enableCors();
+  // Credentials erlauben (Session-Cookie cross-origin von :5173 → :3100). origin:true spiegelt die Anfrage-Origin.
+  app.enableCors({ origin: true, credentials: true });
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true })); // lenient: nur class-DTOs
   app.setGlobalPrefix("api");
   const port = Number(process.env.API_PORT ?? 3100);
   await app.listen(port, "0.0.0.0");
   // eslint-disable-next-line no-console
-  console.log(`Agency OS API → http://localhost:${port}/api`);
+  console.log(`AIgency OS API → http://localhost:${port}/api`);
 }
 bootstrap();

@@ -1,4 +1,4 @@
-// Gesamtes Datenmodell von Agency OS — pro Säule eine Datei.
+// Gesamtes Datenmodell von AIgency OS — pro Säule eine Datei.
 // Hinweis: relative Importe bewusst OHNE Dateiendung (drizzle-kit/tsx/vite lösen TS direkt auf).
 export * from "./org"; // Säule 1: Firmenstruktur
 export * from "./agents"; // Säule 2: Personalwirtschaft (Agenten-Akte)

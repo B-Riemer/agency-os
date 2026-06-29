@@ -1,4 +1,4 @@
-# Bootstrap — Agency OS auf deinem Mac
+# Bootstrap — AIgency OS auf deinem Mac
 
 > Dieser Repo-Stand (M0) enthält den architektonischen Kern: **Datenmodell** (`packages/db`),
 > **Adapter-Vertrag** (`packages/adapter-contract`) und **Infra** (`docker-compose.yml`).

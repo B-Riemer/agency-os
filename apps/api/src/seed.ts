@@ -139,7 +139,7 @@ async function main() {
     { companyId: cid, key: "admin", name: "Admin" },
     { companyId: cid, key: "member", name: "Member" },
   ]);
-  const [owner] = await db.insert(users).values({ email: "ehre@modulr.design", displayName: "Ida Ehre", apiKey: "agos-owner-demo-key" }).returning();
+  const [owner] = await db.insert(users).values({ email: "ai@b-riemer.dev", displayName: "B. Riemer", apiKey: "agos-owner-demo-key" }).returning();
   await db.insert(userRoles).values({ userId: owner.id, roleId: boardRole.id, companyId: cid });
 
   // eslint-disable-next-line no-console

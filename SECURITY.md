@@ -13,7 +13,7 @@ sensitive reports). We aim to acknowledge within a few business days.
 - **Secrets** are encrypted at rest with AES-256-GCM using `SECRETS_MASTER_KEY`. Set a strong,
   unique key (`openssl rand -base64 32`) and keep it out of version control. Secrets are injected
   into agent runs as environment variables only — **never** into prompts or logs.
-- **No phone-home.** Agency OS does not require a license key and does not call out to a vendor
+- **No phone-home.** AIgency OS does not require a license key and does not call out to a vendor
   beacon. It can run fully air-gapped.
 - **Data residency** is yours: self-host the Postgres instance in your chosen region.
 - **External agents** should use **token-scoped credentials** (rotate per agent in the personnel
