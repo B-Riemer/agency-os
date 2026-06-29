@@ -8,6 +8,7 @@ import { AdapterRegistry } from "./adapter.registry.js";
 import { TogglesService } from "../access/toggles.service.js";
 import { AuditService } from "../governance/audit.service.js";
 import { RagService } from "../rag/rag.service.js";
+import { SecretsService } from "../secrets/secrets.service.js";
 
 // USP-Laufzeit: Der Kern ERZWINGT die Akte. Vor execute() werden Skills/Tools nach
 // Toggles gefiltert, das Budget geprüft; danach wird jede Aktion auditiert und Kosten
@@ -20,6 +21,7 @@ export class RunsService {
     @Inject(TogglesService) private readonly toggles: TogglesService,
     @Inject(AuditService) private readonly audit: AuditService,
     @Inject(RagService) private readonly ragService: RagService,
+    @Inject(SecretsService) private readonly secrets: SecretsService,
   ) {}
 
   async run(agentId: string, task: string) {
@@ -28,22 +30,29 @@ export class RunsService {
     if (agent.status !== "active") {
       throw new BadRequestException(`Agent ist '${agent.status}' — kein Lauf möglich.`);
     }
-    // Budget-Gate (Auto-Pause-Logik, M6 verfeinert).
-    if (
-      agent.budgetMonthlyCents != null &&
-      (agent.spentMonthlyCents ?? 0) >= agent.budgetMonthlyCents
-    ) {
-      throw new BadRequestException("Budget-Cap erreicht — Agent pausiert.");
+    // Budget-Gate: bei Cap entweder hart stoppen ODER (budgetFallback) degradiert weiterlaufen.
+    let degraded = false;
+    if (agent.budgetMonthlyCents != null && (agent.spentMonthlyCents ?? 0) >= agent.budgetMonthlyCents) {
+      if (agent.budgetFallback) {
+        degraded = true;
+        await this.heartbeatEntry(agent.companyId, agentId, "budget_warning", "Budget-Cap: Graceful-Fallback (günstiges Modell)");
+      } else {
+        throw new BadRequestException("Budget-Cap erreicht — Agent pausiert.");
+      }
     }
 
     const adapter = this.registry.get(agent.adapterType);
     if (!adapter) throw new BadRequestException(`Kein Adapter für Typ '${agent.adapterType}'`);
 
-    const [allowedTools, allowedSkills, knowledgeFolders] = await Promise.all([
+    const [allowedTools, allowedSkills, knowledgeFolders, injectedEnv] = await Promise.all([
       this.toggles.allowedTools(agentId),
       this.toggles.allowedSkills(agentId),
       this.ragService.allowedFolderNames(agentId),
+      this.secrets.injectedEnvFor(agentId),
     ]);
+    if (Object.keys(injectedEnv).length) {
+      await this.audit.write({ companyId: agent.companyId, actorType: "system", action: "secrets_injected", entityType: "agent", entityId: agentId, data: { keys: Object.keys(injectedEnv) } });
+    }
 
     const runId = randomUUID();
     const ctx: ExecutionContext = {
@@ -53,7 +62,7 @@ export class RunsService {
       allowedSkills,
       allowedTools,
       knowledgeFolders, // Permission-Mirroring: nur freigeschaltete RAG-Quellen
-      injectedEnv: {}, // Secrets-Sidecar-Injection: M6
+      injectedEnv, // Secrets-Sidecar-Injection (Werte nie geloggt)
       budgetRemainingCents:
         agent.budgetMonthlyCents == null
           ? null
@@ -83,8 +92,8 @@ export class RunsService {
       await this.db.update(agents).set({ spentMonthlyCents: newSpent }).where(eq(agents.id, agentId));
     }
 
-    // Budget: Auto-Pause bei 100 %, Warn-Heartbeat ab 80 %.
-    if (agent.budgetMonthlyCents != null && newSpent >= agent.budgetMonthlyCents) {
+    // Budget: Auto-Pause bei 100 % (außer Fallback aktiv), Warn-Heartbeat ab 80 %.
+    if (!agent.budgetFallback && agent.budgetMonthlyCents != null && newSpent >= agent.budgetMonthlyCents) {
       await this.db.update(agents).set({ status: "paused" }).where(eq(agents.id, agentId));
       await this.audit.write({ companyId: agent.companyId, actorType: "system", action: "budget_pause", entityType: "agent", entityId: agentId, data: { spent: newSpent, cap: agent.budgetMonthlyCents } });
       await this.heartbeatEntry(agent.companyId, agentId, "paused", "Budget-Cap erreicht — Auto-Pause");
@@ -104,7 +113,7 @@ export class RunsService {
       data: { task, status: result.status, artifactRef: result.artifactRef },
     });
 
-    return { runId, ...result };
+    return { runId, degraded, ...result };
   }
 
   /** Onboarding-Test: Verbindung/Health/Contract des Adapters prüfen. */

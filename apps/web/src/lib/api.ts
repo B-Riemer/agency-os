@@ -22,6 +22,8 @@ export type Agent = {
   systemPrompt?: string | null;
   budgetMonthlyCents?: number | null;
   spentMonthlyCents?: number | null;
+  sovereignty?: "eu_only" | "eu_plus" | "global" | "global_pii";
+  budgetFallback?: boolean;
 };
 export type Company = { id: string; name: string; slug: string };
 export type Department = { id: string; name: string; key: string };
@@ -36,6 +38,12 @@ export const api = {
     j<Agent>(`/companies/${c}/agents`, { method: "POST", body: JSON.stringify(body) }),
   setStatus: (c: string, id: string, status: Agent["status"]) =>
     j<Agent>(`/companies/${c}/agents/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  setSovereignty: (c: string, id: string, level: string) =>
+    j<Agent>(`/companies/${c}/agents/${id}/sovereignty`, { method: "PATCH", body: JSON.stringify({ level }) }),
+  setBudgetFallback: (c: string, id: string, enabled: boolean) =>
+    j<Agent>(`/companies/${c}/agents/${id}/budget-fallback`, { method: "PATCH", body: JSON.stringify({ enabled }) }),
+  rotateToken: (c: string, id: string) =>
+    j<{ token: string; hint: string }>(`/companies/${c}/agents/${id}/rotate-token`, { method: "POST" }),
   versions: (c: string, id: string) => j<any[]>(`/companies/${c}/agents/${id}/versions`),
   snapshot: (c: string, id: string, note?: string) =>
     j(`/companies/${c}/agents/${id}/versions`, { method: "POST", body: JSON.stringify({ note }) }),

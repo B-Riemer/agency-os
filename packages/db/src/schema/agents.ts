@@ -7,6 +7,7 @@ import {
   timestamp,
   integer,
   jsonb,
+  boolean,
   pgEnum,
   foreignKey,
   index,
@@ -23,6 +24,14 @@ export const agentStatus = pgEnum("agent_status", [
   "active",
   "paused",
   "terminated",
+]);
+
+/** Souveränitäts-Stufe (meinGPT-Idee): EU-only → … → weltweit inkl. PII. */
+export const sovereigntyLevel = pgEnum("sovereignty_level", [
+  "eu_only",
+  "eu_plus",
+  "global",
+  "global_pii",
 ]);
 
 export const agents = pgTable(
@@ -64,6 +73,9 @@ export const agents = pgTable(
     budgetMonthlyCents: integer("budget_monthly_cents"), // null = unbegrenzt
     spentMonthlyCents: integer("spent_monthly_cents").notNull().default(0),
     autoPausePercent: integer("auto_pause_percent").notNull().default(100),
+    // USP-Welle: Souveränität + Budget-Verhalten bei Cap-Erreichung.
+    sovereignty: sovereigntyLevel("sovereignty").notNull().default("eu_plus"),
+    budgetFallback: boolean("budget_fallback").notNull().default(false),
 
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

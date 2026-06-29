@@ -9,6 +9,12 @@ import { SkillsModule } from "./skills/skills.module.js";
 import { RagModule } from "./rag/rag.module.js";
 import { TasksModule } from "./tasks/tasks.module.js";
 import { RoutinesModule } from "./routines/routines.module.js";
+import { CompatModule } from "./compat/compat.module.js";
+import { SecretsModule } from "./secrets/secrets.module.js";
+import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
+import { AuthGuard } from "./access/auth.guard.js";
+import { RbacGuard } from "./access/rbac.guard.js";
+import { AuditInterceptor } from "./common/audit.interceptor.js";
 
 @Module({
   imports: [
@@ -20,8 +26,15 @@ import { RoutinesModule } from "./routines/routines.module.js";
     AdaptersModule,
     SkillsModule,
     RagModule,
+    SecretsModule,
     TasksModule,
     RoutinesModule,
+    CompatModule,
+  ],
+  providers: [
+    { provide: APP_GUARD, useClass: AuthGuard }, // setzt req.user (dev-offen, AUTH_MODE=strict erzwingt)
+    { provide: APP_GUARD, useClass: RbacGuard }, // prüft @RequirePermission
+    { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],
 })
 export class AppModule {}

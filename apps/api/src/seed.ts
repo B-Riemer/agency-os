@@ -15,15 +15,23 @@ import {
   agentVersions,
   tasks,
   routines,
+  secrets,
+  secretVersions,
+  secretBindings,
+  users,
+  roles,
+  userRoles,
 } from "@agency-os/db";
+import { encryptSecret } from "./secrets/crypto.js";
 
 const WAKE = { url: "http://localhost:8900/wake", taskField: "task", timeoutMs: 300000 };
 
 async function main() {
   const db = createDb();
 
-  // Idempotent: alte Company(s) löschen (Cascade entfernt alle abhängigen Daten).
+  // Idempotent: alte Company(s) + globale Users löschen (Cascade entfernt Abhängiges).
   await db.delete(companies);
+  await db.delete(users);
 
   const [company] = await db.insert(companies).values({ name: "AIgency", slug: "aigency" }).returning();
   const cid = company.id;
@@ -49,7 +57,7 @@ async function main() {
   await mk({ displayName: "SOL", role: "Scenario Planner", departmentId: str.id, managerId: orion.id, budgetMonthlyCents: 1500 });
   await mk({ displayName: "LUNA", role: "Market Researcher", departmentId: str.id, managerId: orion.id, budgetMonthlyCents: 1500 });
   // Echter externer Agent: Natascha (status_app auf :8900, /wake).
-  const natascha = await mk({ displayName: "Natascha", role: "Chief of Staff (extern)", departmentId: str.id, managerId: orion.id, systemPrompt: "Persönliche Assistentin & Chief of Staff der Agentur", ...ext(), spentMonthlyCents: 600 });
+  const natascha = await mk({ displayName: "Natascha", role: "Chief of Staff (extern)", departmentId: str.id, managerId: orion.id, systemPrompt: "Persönliche Assistentin & Chief of Staff der Agentur", ...ext(), spentMonthlyCents: 600, sovereignty: "eu_only", budgetFallback: true });
 
   // Content
   const nova = await mk({ displayName: "NOVA", role: "VP of Content", departmentId: con.id, managerId: ceo.id, budgetMonthlyCents: 8000, spentMonthlyCents: 6800 });
@@ -60,7 +68,7 @@ async function main() {
   // Engineering
   const cypher = await mk({ displayName: "CYPHER", role: "CTO", departmentId: eng.id, managerId: ceo.id, budgetMonthlyCents: 8000, spentMonthlyCents: 5200 });
   await mk({ displayName: "NEO", role: "Lead Architect", departmentId: eng.id, managerId: cypher.id, budgetMonthlyCents: 1500 });
-  const morpheus = await mk({ displayName: "MORPHEUS", role: "DevOps Lead (extern)", departmentId: eng.id, managerId: cypher.id, ...ext(), spentMonthlyCents: 1700 });
+  const morpheus = await mk({ displayName: "MORPHEUS", role: "DevOps Lead (extern)", departmentId: eng.id, managerId: cypher.id, ...ext(), spentMonthlyCents: 1700, sovereignty: "global" });
   await mk({ displayName: "TRINITY", role: "ML Engineer", departmentId: eng.id, managerId: cypher.id, budgetMonthlyCents: 1500 });
 
   // Sales
@@ -117,6 +125,20 @@ async function main() {
     { companyId: cid, title: "Quartals-Briefing erstellen", status: "done", priority: 3, assigneeId: natascha.id, createdBy: "routine" },
   ]);
   await db.insert(routines).values({ companyId: cid, name: "Tägliches SEO-Monitoring", cron: "0 8 * * *", agentId: morpheus.id, taskTitleTemplate: "SEO-Check {{date}}", enabled: true });
+
+  // Secrets (AES-verschlüsselt) + Sidecar-Bindung an Natascha
+  const [sec] = await db.insert(secrets).values({ companyId: cid, name: "OpenAI API Key" }).returning();
+  await db.insert(secretVersions).values({ secretId: sec.id, version: 1, ciphertext: encryptSecret("sk-demo-not-a-real-key") });
+  await db.insert(secretBindings).values({ secretId: sec.id, targetType: "agent", targetId: natascha.id, envKey: "OPENAI_API_KEY" });
+
+  // RBAC: Rollen + Owner-User (API-Key für maschinelle Auth; Web läuft dev-offen)
+  const [boardRole] = await db.insert(roles).values({ companyId: cid, key: "board", name: "Board" }).returning();
+  await db.insert(roles).values([
+    { companyId: cid, key: "admin", name: "Admin" },
+    { companyId: cid, key: "member", name: "Member" },
+  ]);
+  const [owner] = await db.insert(users).values({ email: "ehre@modulr.design", displayName: "Ida Ehre", apiKey: "agos-owner-demo-key" }).returning();
+  await db.insert(userRoles).values({ userId: owner.id, roleId: boardRole.id, companyId: cid });
 
   // eslint-disable-next-line no-console
   console.log(`Seed fertig. Company-ID: ${cid}\nExterne Agenten — MORPHEUS: ${morpheus.id}\nNatascha (echt, :8900/wake): ${natascha.id}`);

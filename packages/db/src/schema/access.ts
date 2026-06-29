@@ -52,6 +52,8 @@ export const users = pgTable("users", {
   displayName: text("display_name"),
   // Verknüpfung zum OIDC-Subject (sub), wenn vorhanden.
   oidcSubject: text("oidc_subject"),
+  // API-Key (gehasht in Produktion; M1: Klartext-Demo) für maschinelle Auth.
+  apiKey: text("api_key"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 

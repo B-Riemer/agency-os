@@ -3,6 +3,7 @@ import { api, type Agent } from "../lib/api";
 import { Avatar, euro, statusText } from "../lib/ui";
 
 const TABS = ["IDENTITY", "SKILLS", "ACCESS", "PROPERTIES", "ORIGIN"];
+const SOV: [string, string][] = [["eu_only", "EU-only"], ["eu_plus", "EU+"], ["global", "Global"], ["global_pii", "Global + PII"]];
 
 export function AkteView({
   companyId,
@@ -25,6 +26,7 @@ export function AkteView({
   const [skills, setSkills] = useState<any[]>([]);
   const [toggles, setToggles] = useState<any[]>([]);
   const [tab, setTab] = useState("IDENTITY");
+  const [tokenMsg, setTokenMsg] = useState("");
 
   async function reload() {
     setVersions(await api.versions(companyId, agent.id).catch(() => []));
@@ -84,6 +86,19 @@ export function AkteView({
   async function toggleAccess(t: any, enabled: boolean) {
     await api.setToggle(agent.id, t.targetType, t.targetId, enabled);
     setToggles(await api.agentToggles(agent.id));
+  }
+  async function setSov(level: string) {
+    await api.setSovereignty(companyId, agent.id, level);
+    onChanged();
+  }
+  async function setFallback(enabled: boolean) {
+    await api.setBudgetFallback(companyId, agent.id, enabled);
+    onChanged();
+  }
+  async function rotate() {
+    const r = await api.rotateToken(companyId, agent.id);
+    setTokenMsg(r.token);
+    onChanged();
   }
   function goTab(t: string) {
     setTab(t);
@@ -195,6 +210,10 @@ export function AkteView({
                   <polyline points="0,24 30,18 60,22 90,12 120,16 150,9 180,15 210,7 240,11" fill="none" stroke="#7fb0ff" strokeWidth="2" />
                 </svg>
               </div>
+              <div className="acc" style={{ marginTop: 10 }}>
+                <span>Budget-Graceful-Fallback</span>
+                <span className={"onoff " + (agent.budgetFallback ? "on" : "off")} onClick={() => setFallback(!agent.budgetFallback)}>{agent.budgetFallback ? "AN" : "AUS"}</span>
+              </div>
             </div>
 
             <div className={"card2" + hl("ORIGIN")} id="c-ORIGIN">
@@ -204,6 +223,15 @@ export function AkteView({
               <div className="kv"><span className="k">Provider</span><span className="v">{ext ? "Eigene Runtime" : "Agency OS Runtime"}</span></div>
               <div className="kv"><span className="k">Endpoint</span><span className="v mono" style={{ fontSize: 10 }}>{String((agent.adapterConfig as any)?.url ?? "—")}</span></div>
               <div className="kv"><span className="k">Auth</span><span className="v">{ext ? "Bearer / Token" : "Session"}</span></div>
+              <div className="kv">
+                <span className="k">Souveränität</span>
+                <select value={agent.sovereignty ?? "eu_plus"} onChange={(e) => setSov(e.target.value)}
+                  style={{ background: "rgba(0,0,0,.3)", color: "var(--tx)", border: "1px solid var(--stroke2)", borderRadius: 8, padding: "3px 8px", fontFamily: "inherit", fontSize: 12 }}>
+                  {SOV.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+              </div>
+              {ext && <button className="btn" style={{ marginTop: 10, width: "100%" }} onClick={rotate}>Token rotieren (scoped)</button>}
+              {tokenMsg && <div className="result ok" style={{ marginTop: 8, wordBreak: "break-all", fontSize: 11 }}>{tokenMsg}</div>}
             </div>
           </div>
 

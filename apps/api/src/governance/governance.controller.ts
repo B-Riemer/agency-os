@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Inject, Param, Post } from "@nestjs/common";
 import { GovernanceService } from "./governance.service.js";
 import { AuditService } from "./audit.service.js";
+import { RequirePermission } from "../access/permissions.decorator.js";
 
 @Controller()
 export class GovernanceController {
@@ -45,6 +46,7 @@ export class GovernanceController {
   }
 
   @Post("approvals/:id/decide")
+  @RequirePermission("approval", "approve")
   decide(@Param("id") id: string, @Body("status") status: "approved" | "rejected") {
     return this.gov.decide(id, status);
   }

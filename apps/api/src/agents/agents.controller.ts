@@ -1,9 +1,8 @@
-import { Body, Controller, Get, Inject, Param, Patch, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Inject, Param, Patch, Post } from "@nestjs/common";
 import { AgentsService } from "./agents.service.js";
 import { CreateAgentDto } from "./dto/create-agent.dto.js";
-import { RbacGuard } from "../access/rbac.guard.js";
+import { RequirePermission } from "../access/permissions.decorator.js";
 
-@UseGuards(RbacGuard)
 @Controller("companies/:companyId/agents")
 export class AgentsController {
   constructor(@Inject(AgentsService) private readonly agents: AgentsService) {}
@@ -14,6 +13,7 @@ export class AgentsController {
   }
 
   @Post()
+  @RequirePermission("agent", "create")
   create(@Param("companyId") companyId: string, @Body() dto: CreateAgentDto) {
     return this.agents.create(companyId, dto);
   }
@@ -44,5 +44,20 @@ export class AgentsController {
   @Post(":id/versions/:vid/promote")
   promote(@Param("id") id: string, @Param("vid") vid: string) {
     return this.agents.promote(id, vid);
+  }
+
+  @Patch(":id/sovereignty")
+  sovereignty(@Param("id") id: string, @Body("level") level: "eu_only" | "eu_plus" | "global" | "global_pii") {
+    return this.agents.setSovereignty(id, level);
+  }
+
+  @Patch(":id/budget-fallback")
+  budgetFallback(@Param("id") id: string, @Body("enabled") enabled: boolean) {
+    return this.agents.setBudgetFallback(id, enabled);
+  }
+
+  @Post(":id/rotate-token")
+  rotateToken(@Param("id") id: string) {
+    return this.agents.rotateToken(id);
   }
 }

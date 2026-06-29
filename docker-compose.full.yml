@@ -1,0 +1,50 @@
+# Voller Stack (db + api + web) für Deploy/Demo. Self-hosted, DSGVO-konform.
+# Start:   docker compose -f docker-compose.full.yml up -d --build
+# Migrate: docker compose -f docker-compose.full.yml run --rm api pnpm --filter @agency-os/db db:migrate
+# Seed:    docker compose -f docker-compose.full.yml run --rm api pnpm --filter @agency-os/api seed
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-agency}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_local}
+      POSTGRES_DB: ${POSTGRES_DB:-agency_os}
+    volumes:
+      - agency_os_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-agency} -d ${POSTGRES_DB:-agency_os}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-agency}:${POSTGRES_PASSWORD:-change_me_local}@db:5432/${POSTGRES_DB:-agency_os}
+      API_PORT: "3100"
+      AUTH_MODE: ${AUTH_MODE:-local}
+      SECRETS_MASTER_KEY: ${SECRETS_MASTER_KEY:-change_me_generate_openssl_rand}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3100:3100"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3100/api}
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+
+volumes:
+  agency_os_pgdata:

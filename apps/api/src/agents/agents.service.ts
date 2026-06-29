@@ -1,4 +1,5 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { randomUUID } from "node:crypto";
 import { desc, eq } from "drizzle-orm";
 import { type Db, agents, agentVersions } from "@agency-os/db";
 import { DRIZZLE } from "../database/drizzle.constants.js";
@@ -98,5 +99,29 @@ export class AgentsService {
       .where(eq(agents.id, agentId))
       .returning();
     return a;
+  }
+
+  // --- USP-Welle: Souveränität, Budget-Fallback, token-scoped Credentials ---
+  async setSovereignty(id: string, level: "eu_only" | "eu_plus" | "global" | "global_pii") {
+    const [a] = await this.db.update(agents).set({ sovereignty: level, updatedAt: new Date() }).where(eq(agents.id, id)).returning();
+    if (!a) throw new NotFoundException("Agent nicht gefunden");
+    return a;
+  }
+
+  async setBudgetFallback(id: string, enabled: boolean) {
+    const [a] = await this.db.update(agents).set({ budgetFallback: enabled, updatedAt: new Date() }).where(eq(agents.id, id)).returning();
+    if (!a) throw new NotFoundException("Agent nicht gefunden");
+    return a;
+  }
+
+  /** Token-scoped Credential (Zylon-Idee): per-Agent-Bearer-Token, das nur dieser Agent nutzt.
+   *  Wird einmalig zurückgegeben und als Authorization-Header in adapterConfig hinterlegt. */
+  async rotateToken(id: string) {
+    const a = await this.get(id);
+    const token = "agos_" + randomUUID().replace(/-/g, "") + randomUUID().replace(/-/g, "").slice(0, 8);
+    const cfg = (a.adapterConfig as Record<string, any>) ?? {};
+    const headers = { ...(cfg.headers ?? {}), Authorization: `Bearer ${token}` };
+    await this.db.update(agents).set({ adapterConfig: { ...cfg, headers }, updatedAt: new Date() }).where(eq(agents.id, id));
+    return { token, hint: "Einmalig anzeigen — wird als Authorization-Header an den externen Agenten gesendet." };
   }
 }

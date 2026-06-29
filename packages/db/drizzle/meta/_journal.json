@@ -22,6 +22,20 @@
       "when": 1782700706818,
       "tag": "0002_careful_polaris",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1782703328402,
+      "tag": "0003_heavy_giant_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1782704216159,
+      "tag": "0004_same_giant_girl",
+      "breakpoints": true
     }
   ]
 }
