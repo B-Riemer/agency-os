@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agency OS — Dark Command Center</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.24.0/dist/tabler-icons.min.css">
+<style>
+  :root{
+    --bg:#070910; --tx:#eef2fb; --tx2:#a6afc2; --tx3:#6b7488;
+    --glass:rgba(255,255,255,.045); --glass2:rgba(255,255,255,.07);
+    --stroke:rgba(255,255,255,.08); --stroke2:rgba(255,255,255,.17);
+    --blue:#5b8cff; --violet:#9b6bff; --teal:#2dd4bf; --green:#3ee5a3; --amber:#ffc24b; --orange:#ff9d4d; --red:#ff7a7a;
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    color:var(--tx); font:13.5px/1.55 ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased; letter-spacing:.1px; overflow:hidden;
+    background:
+      radial-gradient(1200px 720px at 80% -14%, rgba(155,107,255,.20), transparent 58%),
+      radial-gradient(1000px 620px at 3% 2%, rgba(91,140,255,.18), transparent 55%),
+      radial-gradient(900px 800px at 65% 130%, rgba(45,212,191,.09), transparent 60%),
+      #070910;
+  }
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.45;
+    background-image:linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);
+    background-size:48px 48px;mask:radial-gradient(1000px 700px at 50% 35%,#000,transparent 78%)}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;box-shadow:inset 0 0 260px 50px rgba(0,0,0,.6)}
+  .app{display:grid;grid-template-columns:226px 1fr;height:100vh;position:relative;z-index:1}
+  .glass{background:var(--glass);backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%);border:1px solid var(--stroke);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 22px 46px rgba(0,0,0,.46)}
+
+  .side{border-right:1px solid var(--stroke);padding:20px 14px;display:flex;flex-direction:column;gap:5px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.004));backdrop-filter:blur(20px)}
+  .brand{display:flex;align-items:center;gap:11px;padding:6px 8px 20px}
+  .logo{width:34px;height:34px;border-radius:11px;background:linear-gradient(135deg,var(--blue),var(--violet));position:relative;box-shadow:0 8px 26px rgba(123,108,255,.6),inset 0 1px 0 rgba(255,255,255,.5)}
+  .logo::after{content:"";position:absolute;inset:9px;border-radius:5px;border:1.6px solid rgba(255,255,255,.9)}
+  .brand b{font-weight:650;letter-spacing:.2px;font-size:15px}
+  .brand small{display:block;color:var(--tx3);font-size:10px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase}
+  .nav{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:11px;color:var(--tx2);cursor:pointer;font-weight:500;font-size:13.5px;transition:.16s;border:1px solid transparent}
+  .nav:hover{background:var(--glass);color:var(--tx)}
+  .nav.on{background:var(--glass2);color:#fff;border-color:var(--stroke);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 6px 18px rgba(0,0,0,.3)}
+  .nav.on .ic{color:var(--blue);text-shadow:0 0 12px rgba(91,140,255,.9)}
+  .nav .ic{width:18px;text-align:center;font-size:15px;opacity:.95}
+  .nav .dot{margin-left:auto;font-size:11px;color:var(--tx3);background:rgba(255,255,255,.06);padding:1px 7px;border-radius:999px}
+  .side .spacer{flex:1}
+  .me{display:flex;align-items:center;gap:10px;padding:11px 8px 2px;border-top:1px solid var(--stroke);margin-top:10px}
+  .me .av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#2b3a5e,#42306b);display:grid;place-items:center;font-size:11px;font-weight:650;color:#dfe7ff;box-shadow:0 0 0 1px rgba(255,255,255,.1)}
+
+  .main{display:flex;flex-direction:column;min-width:0}
+  .top{height:60px;border-bottom:1px solid var(--stroke);display:flex;align-items:center;gap:14px;padding:0 22px;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent);backdrop-filter:blur(16px)}
+  .switch{display:flex;align-items:center;gap:10px;padding:8px 13px;border:1px solid var(--stroke2);border-radius:11px;background:var(--glass);font-weight:600;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+  .switch .k{width:19px;height:19px;border-radius:6px;background:linear-gradient(135deg,var(--blue),var(--violet));box-shadow:0 4px 12px rgba(123,108,255,.5)}
+  .switch .cv{color:var(--tx3);font-weight:500}
+  .search{flex:1;max-width:440px;display:flex;align-items:center;gap:10px;padding:9px 13px;border:1px solid var(--stroke);border-radius:11px;background:var(--glass);color:var(--tx3)}
+  .search input{flex:1;background:transparent;border:0;outline:0;color:var(--tx);font-size:13px}
+  .top .right{margin-left:auto;display:flex;align-items:center;gap:12px;color:var(--tx2)}
+  .ibtn{width:36px;height:36px;border-radius:10px;border:1px solid var(--stroke);background:var(--glass);display:grid;place-items:center;cursor:pointer;position:relative}
+  .ibtn .bdot{position:absolute;top:8px;right:9px;width:7px;height:7px;border-radius:50%;background:var(--orange);box-shadow:0 0 8px var(--orange)}
+  .uav{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#2b3a5e,#42306b);display:grid;place-items:center;font-size:11px;font-weight:650;color:#dfe7ff}
+
+  .stage{flex:1;overflow:auto;position:relative}
+
+  /* ---------- ORG VIEW ---------- */
+  #orgView{padding:30px 36px 50px;position:relative;min-height:100%}
+  #wires{position:absolute;inset:0;pointer-events:none;z-index:0}
+  #orgView > *:not(#wires){position:relative;z-index:1}
+  .ceorow{display:flex;align-items:center;justify-content:center;gap:26px;margin:6px 0 60px}
+  .emblem{width:154px;height:154px;flex:none;filter:drop-shadow(0 0 34px rgba(123,108,255,.6))}
+  .emblem .spin{transform-box:fill-box;transform-origin:center;animation:spin 26s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .emblem-wrap{position:relative;display:grid;place-items:center}
+  .emblem-brain{position:absolute;font-size:56px;color:#cfe0ff;text-shadow:0 0 22px rgba(123,108,255,.95),0 0 8px rgba(155,107,255,.8);pointer-events:none}
+  .ceolab .role{color:var(--blue);font-weight:700;letter-spacing:1px;font-size:13px;text-shadow:0 0 16px rgba(91,140,255,.7)}
+  .ceolab .nm{font-size:30px;font-weight:700;letter-spacing:1px;margin:2px 0 4px;text-shadow:0 0 24px rgba(123,108,255,.5)}
+  .ceolab .desc{color:var(--tx3);font-size:12.5px;max-width:230px;line-height:1.5}
+  .depts{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+  .dept{border-radius:18px;padding:18px 16px 22px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.012));border:1px solid var(--stroke);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 24px 50px rgba(0,0,0,.45),0 0 60px rgba(91,140,255,.07);position:relative}
+  .dept::before{content:"";position:absolute;inset:0;border-radius:18px;padding:1px;background:linear-gradient(180deg,rgba(91,140,255,.35),transparent 40%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+  .depttitle{text-align:center;font-size:16px;font-weight:700;letter-spacing:2.5px;color:#dbe4f7;margin-bottom:18px}
+  .vp{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:6px}
+  .reports{margin-top:14px;display:flex;flex-direction:column;gap:14px;padding-left:6px;position:relative}
+  .node{display:flex;align-items:center;gap:11px;cursor:pointer;border-radius:12px;padding:6px;transition:.15s;border:1px solid transparent}
+  .node:hover{background:var(--glass);border-color:var(--stroke2);box-shadow:0 0 22px rgba(91,140,255,.18);transform:translateY(-1px)}
+  .node.vpnode{flex-direction:column;text-align:center;gap:8px}
+  .node .lab .t{color:var(--tx3);font-size:10.5px;letter-spacing:.3px}
+  .node .lab .n{font-weight:650;font-size:13.5px;letter-spacing:.4px}
+  .node.vpnode .lab .n{font-size:15px}
+  .ext{display:inline-block;margin-top:4px;font-size:8.5px;font-weight:800;letter-spacing:.8px;padding:2px 7px;border-radius:999px;background:rgba(255,157,77,.16);color:#ffcb96;box-shadow:inset 0 0 0 1px rgba(255,157,77,.55)}
+  /* avatar */
+  .ava{position:relative;display:inline-grid;place-items:center;flex:none;border-radius:50%;padding:2.5px;background:linear-gradient(155deg,var(--rt),var(--rb));box-shadow:0 0 20px var(--g),inset 0 0 0 1px rgba(255,255,255,.15)}
+  .ava .face{position:relative;z-index:1;width:100%;height:100%;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:radial-gradient(circle at 50% 36%,#16203a,#080d18)}
+  .ava .face img{width:100%;height:100%;object-fit:cover;display:block}
+  .ava .face i{line-height:1}
+  .ava .halo{position:absolute;inset:-30%;border-radius:50%;background:radial-gradient(circle at 50% 48%,var(--g),transparent 60%);filter:blur(9px);z-index:0;animation:breathe 4.5s ease-in-out infinite}
+  @keyframes breathe{0%,100%{opacity:.65;transform:scale(1)}50%{opacity:1;transform:scale(1.1)}}
+  .ava .sd{position:absolute;right:0;bottom:2px;border-radius:50%;border:2px solid #0a0e17;z-index:2}
+  .sd.active{background:var(--green);box-shadow:0 0 10px var(--green)}
+  .sd.paused{background:var(--amber);box-shadow:0 0 10px var(--amber)} .sd.onb{background:var(--blue);box-shadow:0 0 10px var(--blue)}
+
+  /* ---------- AKTE VIEW ---------- */
+  #akteView{display:none;padding:22px 26px 44px}
+  .back{display:inline-flex;align-items:center;gap:8px;color:var(--tx2);font-weight:500;cursor:pointer;padding:7px 12px;border:1px solid var(--stroke);border-radius:10px;background:var(--glass);margin-bottom:16px}
+  .back:hover{color:#fff;border-color:var(--stroke2)}
+  .ahead{display:flex;align-items:center;gap:18px;padding:18px 20px;border-radius:16px;margin-bottom:14px}
+  .ahead .ava{width:66px;height:66px}
+  .ahead .nm{font-size:24px;font-weight:700;letter-spacing:1px}
+  .ahead .meta{color:var(--tx3);font-size:12.5px;margin-top:5px;display:flex;gap:14px;flex-wrap:wrap}
+  .ahead .meta b{color:var(--tx2);font-weight:600}
+  .runpill{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:650;letter-spacing:.6px;color:#9bf3cf;padding:7px 13px;border-radius:999px;background:rgba(62,229,163,.12);box-shadow:inset 0 0 0 1px rgba(62,229,163,.4)}
+  .runpill .d{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2.4s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .tabs{display:flex;gap:4px;padding:5px;border-radius:13px;margin-bottom:14px}
+  .tab{flex:1;text-align:center;padding:10px;border-radius:9px;color:var(--tx3);font-weight:600;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:.15s}
+  .tab:hover{color:var(--tx2)}
+  .tab.on{color:#fff;background:linear-gradient(135deg,rgba(91,140,255,.9),rgba(155,107,255,.9));box-shadow:0 8px 20px rgba(123,108,255,.4)}
+  .agrid{display:grid;grid-template-columns:1fr 332px;gap:14px;align-items:start}
+  .card2{border-radius:14px;padding:16px;background:var(--glass);backdrop-filter:blur(20px) saturate(150%);border:1px solid var(--stroke);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 16px 36px rgba(0,0,0,.4)}
+  .card2.hl{border-color:rgba(91,140,255,.7);box-shadow:0 0 0 1px rgba(91,140,255,.5),0 0 26px rgba(91,140,255,.25)}
+  .ct{font-size:10.5px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;color:var(--tx3);margin-bottom:13px;display:flex;align-items:center;gap:8px}
+  .ct .ln{flex:1;height:1px;background:linear-gradient(90deg,var(--stroke),transparent)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .kv{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--stroke);font-size:12.5px}
+  .kv .k{color:var(--tx3)} .kv .v{color:var(--tx);text-align:right} .kv .v.mono{font-family:ui-monospace,monospace;font-size:11.5px;color:#bcd3ff}
+  .subh{font-size:12px;font-weight:600;color:var(--tx2);margin:2px 0 10px}
+  .four{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:12px}
+  .sk{margin-bottom:13px}
+  .sk .top{display:flex;align-items:center;gap:8px;font-size:12.5px}
+  .sk .bd{font-size:9px;font-weight:800;letter-spacing:.4px;padding:2px 6px;border-radius:5px;text-transform:uppercase}
+  .bd-info{background:rgba(91,140,255,.16);color:#bcd3ff} .bd-appr{background:rgba(255,194,75,.16);color:#ffd98a}
+  .sk .vd{margin-left:auto;color:var(--tx3);font-size:10.5px;cursor:pointer}
+  .bar{height:5px;border-radius:999px;background:rgba(255,255,255,.09);margin-top:7px;overflow:hidden}
+  .bar > i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--blue),var(--violet))}
+  .acc{display:flex;align-items:center;gap:9px;padding:8px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,.05)}
+  .acc .lk{color:var(--tx3);font-size:12px}
+  .onoff{margin-left:auto;font-size:9px;font-weight:800;letter-spacing:.6px;padding:3px 9px;border-radius:6px;cursor:pointer;min-width:38px;text-align:center}
+  .onoff.on{background:rgba(62,229,163,.18);color:#8df0c6;box-shadow:inset 0 0 0 1px rgba(62,229,163,.4)}
+  .onoff.off{background:rgba(255,255,255,.05);color:var(--tx3);box-shadow:inset 0 0 0 1px var(--stroke)}
+  .budget{margin-top:12px;padding:12px;border-radius:11px;background:rgba(0,0,0,.25);border:1px solid var(--stroke)}
+  .budget .bt{font-size:10px;font-weight:800;letter-spacing:1px;color:var(--tx3)}
+  .spark{margin-top:8px}
+  .origin-icons{display:flex;gap:8px;margin-top:14px}
+  .origin-icons span{width:30px;height:30px;border-radius:9px;border:1px solid var(--stroke);display:grid;place-items:center;color:var(--tx2);background:var(--glass)}
+  /* audit */
+  .audhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .filter{font-size:11px;color:var(--tx3);border:1px solid var(--stroke);border-radius:8px;padding:4px 9px;cursor:pointer}
+  .ev{display:flex;gap:11px;padding:12px 0;border-bottom:1px solid var(--stroke)}
+  .ev .eic{width:26px;height:26px;border-radius:8px;flex:none;display:grid;place-items:center;background:var(--glass);border:1px solid var(--stroke);color:var(--blue);font-size:13px}
+  .ev .etime{color:var(--tx3);font-size:10.5px}
+  .ev .etext{font-size:12px;margin-top:3px;line-height:1.5}
+  .ev .etext b{color:#cbdcff;font-weight:600}
+  .ev .ecost{margin-left:auto;color:#8df0c6;font-family:ui-monospace,monospace;font-size:11px;white-space:nowrap}
+  .footnote{padding:11px 30px;border-top:1px solid var(--stroke);color:var(--tx3);font-size:11.5px;background:rgba(0,0,0,.2)}
+  .hirebtn{padding:9px 15px;border-radius:11px;border:1px solid rgba(123,140,255,.5);background:linear-gradient(135deg,rgba(91,140,255,.95),rgba(155,107,255,.95));color:#fff;font-weight:600;font-size:13px;cursor:pointer;box-shadow:0 8px 22px rgba(123,108,255,.45)}
+  .hirebtn:hover{filter:brightness(1.08)}
+  #onboardView{display:none;padding:26px 30px 56px;max-width:1000px}
+  .wiz-h{font-size:22px;font-weight:650;margin:2px 0 2px}
+  .wiz-sub{color:var(--tx3);font-size:13px;margin-bottom:22px;max-width:640px;line-height:1.6}
+  .steps{display:flex;gap:10px;margin-bottom:20px}
+  .stp{flex:1;display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:12px;border:1px solid var(--stroke);background:var(--glass);color:var(--tx3);font-size:12.5px;font-weight:500}
+  .stp .num{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;background:rgba(255,255,255,.07);color:var(--tx2);flex:none}
+  .stp.on{color:#fff;border-color:rgba(91,140,255,.6);box-shadow:0 0 0 1px rgba(91,140,255,.4),0 0 22px rgba(91,140,255,.15)}
+  .stp.on .num{background:linear-gradient(135deg,var(--blue),var(--violet));color:#fff}
+  .stp.done .num{background:rgba(62,229,163,.25);color:#8df0c6}
+  .wcard{border-radius:16px;padding:22px;margin-bottom:16px}
+  .fld{margin-bottom:15px}
+  .fld label{display:block;font-size:12px;color:var(--tx2);margin-bottom:7px;font-weight:500}
+  .fld input,.fld select{width:100%;padding:11px 13px;border-radius:10px;border:1px solid var(--stroke2);background:rgba(0,0,0,.28);color:var(--tx);font-size:13px;outline:none;font-family:inherit}
+  .fld input:focus,.fld select:focus{border-color:rgba(91,140,255,.7);box-shadow:0 0 0 3px rgba(91,140,255,.18)}
+  .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .tile{padding:16px;border-radius:13px;border:1px solid var(--stroke);background:var(--glass);cursor:pointer;transition:.15s}
+  .tile:hover{border-color:var(--stroke2);transform:translateY(-1px)}
+  .tile.sel{border-color:rgba(91,140,255,.8);box-shadow:0 0 0 1px rgba(91,140,255,.5),0 0 24px rgba(91,140,255,.2)}
+  .tile .ti{font-size:24px;color:#bcd3ff;text-shadow:0 0 14px rgba(91,140,255,.6)}
+  .tile .tt{font-weight:600;margin-top:9px;font-size:13.5px}
+  .tile .td{color:var(--tx3);font-size:11.5px;margin-top:3px;line-height:1.45}
+  .testbtn{padding:10px 16px;border-radius:10px;border:1px solid var(--stroke2);background:var(--glass);color:var(--tx);font-weight:500;cursor:pointer}
+  .testbtn:hover{border-color:rgba(91,140,255,.6)}
+  .testres{margin-top:12px;padding:11px 13px;border-radius:10px;font-size:12.5px;display:none}
+  .testres.ok{display:block;background:rgba(62,229,163,.12);color:#9bf3cf;box-shadow:inset 0 0 0 1px rgba(62,229,163,.4)}
+  .testres.run{display:block;background:var(--glass);color:var(--tx2)}
+  .motifs{display:flex;gap:10px;flex-wrap:wrap}
+  .motif{width:48px;height:48px;border-radius:12px;border:1px solid var(--stroke);background:var(--glass);display:grid;place-items:center;font-size:22px;color:#bcd3ff;cursor:pointer}
+  .motif.sel{border-color:rgba(91,140,255,.8);box-shadow:0 0 18px rgba(91,140,255,.3);color:#fff}
+  .wnav{display:flex;gap:12px;align-items:center;margin-top:6px}
+  .wnav .sp{flex:1}
+  .btn{padding:11px 18px;border-radius:11px;border:1px solid var(--stroke2);background:var(--glass);color:var(--tx);font-weight:600;cursor:pointer}
+  .btn:hover{border-color:rgba(91,140,255,.6)}
+  .btn.primary{border-color:rgba(123,140,255,.5);background:linear-gradient(135deg,var(--blue),var(--violet));color:#fff;box-shadow:0 8px 20px rgba(123,108,255,.4)}
+  #peopleView,#skillsView,#govView{display:none;padding:26px 30px 56px}
+  .h2{font-size:22px;font-weight:650;margin:2px 0 2px}
+  .mcards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:6px 0 16px}
+  .metric{background:var(--glass);border:1px solid var(--stroke);border-radius:13px;padding:14px 16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+  .metric .lab{color:var(--tx3);font-size:11.5px} .metric .val{font-size:24px;font-weight:650;margin-top:5px} .metric .val.good{color:#8df0c6}
+  .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+  .prow{display:flex;align-items:center;gap:12px;padding:12px 13px;border-radius:13px;border:1px solid var(--stroke);background:var(--glass);cursor:pointer;transition:.15s}
+  .prow:hover{border-color:var(--stroke2);transform:translateY(-1px);box-shadow:0 0 22px rgba(91,140,255,.12)}
+  .matrix{width:100%;border-collapse:collapse;font-size:12.5px}
+  .matrix th,.matrix td{padding:9px 8px;border-bottom:1px solid var(--stroke);text-align:left}
+  .matrix th{color:var(--tx3);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px}
+  .cell{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:6px;font-size:10px;font-weight:700}
+  .cell.auto{background:rgba(62,229,163,.16);color:#8df0c6} .cell.appr{background:rgba(255,194,75,.16);color:#ffd98a} .cell.none{color:var(--tx3)}
+  .approval{display:flex;align-items:center;gap:12px;padding:12px 13px;border:1px solid var(--stroke);border-radius:12px;background:var(--glass);margin-bottom:9px;transition:.2s}
+  .mini-btn{padding:7px 13px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--stroke2)}
+  .mini-btn.ok{background:rgba(62,229,163,.16);color:#8df0c6} .mini-btn.no{background:rgba(255,122,122,.12);color:#ffb3b3}
+  ::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:9px;border:3px solid transparent;background-clip:content-box}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><div class="logo"></div><div><b>Agency OS</b><small>Command Center</small></div></div>
+    <div class="nav on" data-view="org" onclick="showOrg()"><span class="ic">▣</span> Org</div>
+    <div class="nav" data-view="people" onclick="showPeople()"><span class="ic">◷</span> People <span class="dot">17</span></div>
+    <div class="nav" data-view="skills" onclick="showSkills()"><span class="ic">✦</span> Skills</div>
+    <div class="nav" data-view="gov" onclick="showGov()"><span class="ic">⚖</span> Governance</div>
+    <div class="spacer"></div>
+    <div class="nav" data-view="settings"><span class="ic">⚙</span> Einstellungen</div>
+    <div class="me"><div class="av">IE</div><div><div style="font-weight:600;font-size:12.5px">Ida Ehre</div><div style="color:var(--tx3);font-size:11px">Board · Owner</div></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="top">
+      <div class="switch"><span class="k"></span> Agency OS <span class="cv">▾</span></div>
+      <div class="search"><span>⌕</span><input placeholder="Agenten suchen …"></div>
+      <div class="right">
+        <button class="hirebtn" onclick="openOnboard()"><i class="ti ti-plus" style="font-size:15px;vertical-align:-2px"></i> Agent einstellen</button>
+        <div class="ibtn">◔<span class="bdot"></span></div>
+        <div class="uav">IE</div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div id="orgView"><svg id="wires"></svg></div>
+      <div id="akteView"></div>
+      <div id="onboardView"></div>
+      <div id="peopleView"></div>
+      <div id="skillsView"></div>
+      <div id="govView"></div>
+    </div>
+    <div class="footnote">Prototyp · Visual Language „Dark Command Center" (Konzept A) · Daten illustrativ, Felder aus dem realen Datenmodell (packages/db).</div>
+  </div>
+</div>
+
+<script>
+function ava(size,color,status,external,opts){
+  opts=opts||{};
+  const hue = external?28 : color==='teal'?168 : color==='violet'?266 : color==='amber'?42 : 212;
+  const rt = external?'#ffb877':`hsl(${hue},96%,75%)`, rb = external?'#ff8a3d':`hsl(${(hue+40)%360},90%,62%)`;
+  const gl = external?'rgba(255,150,70,.9)':`hsla(${hue},95%,62%,.85)`;
+  const ic = external?'#ffd0a8':`hsl(${hue},92%,82%)`;
+  const dot = Math.max(9, Math.round(size*0.21));
+  // Grundeinstellung: Line-Art-Motiv je Rolle (Motiv-Bibliothek). Foto-Override via opts.photo.
+  const inner = opts.photo
+    ? `<span class="face"><img src="${opts.photo}" alt="" loading="lazy"></span>`
+    : `<span class="face"><i class="ti ti-${opts.icon||'user'}" style="color:${ic};font-size:${Math.round(size*0.46)}px;text-shadow:0 0 14px ${gl}"></i></span>`;
+  return `<span class="ava" style="width:${size}px;height:${size}px;--g:${gl};--rt:${rt};--rb:${rb}">
+    <span class="halo"></span>${inner}
+    <span class="sd ${status}" style="width:${dot}px;height:${dot}px"></span></span>`;
+}
+const ICON={orion:'target-arrow',vega:'chart-line',sol:'route',luna:'zoom-scan',
+  nova:'feather',atlas:'palette',rhea:'pencil',kai:'speakerphone',
+  cypher:'cpu',neo:'stack-2',morpheus:'server-bolt',trinity:'robot',
+  mercury:'trending-up',juno:'briefcase',sirius:'users-group',mars:'phone-call'};
+
+const emblem=`<svg class="emblem" viewBox="0 0 160 160">
+  <defs><linearGradient id="eg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fb0ff"/><stop offset="1" stop-color="#9b6bff"/></linearGradient></defs>
+  <g class="spin"><circle cx="80" cy="80" r="74" fill="none" stroke="rgba(150,170,220,.55)" stroke-width="2" stroke-dasharray="2 6"/><circle cx="80" cy="18" r="3.6" fill="#7fffd8"/></g>
+  <circle cx="80" cy="80" r="62" fill="none" stroke="url(#eg)" stroke-width="2.6" opacity=".95"/>
+  <circle cx="80" cy="80" r="50" fill="rgba(10,14,24,.75)" stroke="rgba(120,150,220,.4)" stroke-width="1"/>
+  </svg>`;
+
+const company={
+  Strategy:{title:"STRATEGY",vp:{id:"orion",t:"VP of Strategy",n:"ORION",color:"blue",status:"active"},
+    reports:[{id:"vega",t:"Lead Analyst",n:"VEGA",color:"blue",status:"active"},{id:"sol",t:"Scenario Planner",n:"SOL",color:"teal",status:"active"},{id:"luna",t:"Market Researcher",n:"LUNA",color:"blue",status:"active"}]},
+  Content:{title:"CONTENT",vp:{id:"nova",t:"VP of Content",n:"NOVA",color:"violet",status:"active"},
+    reports:[{id:"atlas",t:"Creative Director",n:"ATLAS",color:"violet",status:"active"},{id:"rhea",t:"Lead Writer",n:"RHEA",color:"blue",status:"active",external:true},{id:"kai",t:"Social Media Mgr",n:"KAI",color:"teal",status:"active"}]},
+  Engineering:{title:"ENGINEERING",vp:{id:"cypher",t:"CTO",n:"CYPHER",color:"blue",status:"active"},
+    reports:[{id:"neo",t:"Lead Architect",n:"NEO",color:"blue",status:"active"},{id:"morpheus",t:"DevOps Lead",n:"MORPHEUS",color:"blue",status:"active",external:true},{id:"trinity",t:"ML Engineer",n:"TRINITY",color:"teal",status:"active"}]},
+  Sales:{title:"SALES",vp:{id:"mercury",t:"VP of Sales",n:"MERCURY",color:"amber",status:"active"},
+    reports:[{id:"juno",t:"Account Executive",n:"JUNO",color:"amber",status:"active",photo:"https://i.pravatar.cc/160?img=12"},{id:"sirius",t:"External Partner",n:"SIRIUS",color:"blue",status:"active",external:true},{id:"mars",t:"Sales Development Rep",n:"MARS",color:"amber",status:"paused"}]},
+};
+
+function nodeHtml(a,isVp){
+  const ext=a.external?'<span class="ext">extern</span>':'';
+  return `<div class="node ${isVp?'vpnode':''}" data-id="${a.id}">
+    ${ava(isVp?52:44,a.color,a.status,a.external,{seed:a.n,photo:a.photo,icon:ICON[a.id]})}
+    <div class="lab"><div class="t">${a.t}:</div><div class="n">${a.n}</div>${ext}</div></div>`;
+}
+function deptHtml(d){
+  return `<div class="dept"><div class="depttitle">${d.title}</div>
+    <div class="vp">${nodeHtml(d.vp,true)}</div>
+    <div class="reports">${d.reports.map(r=>nodeHtml(r,false)).join('')}</div></div>`;
+}
+function renderOrg(){
+  const v=document.getElementById('orgView');
+  v.querySelectorAll('.ceorow,.depts').forEach(e=>e.remove());
+  const ceo=document.createElement('div'); ceo.className='ceorow';
+  ceo.innerHTML=`<div class="emblem-wrap">${emblem}<i class="ti ti-brain emblem-brain"></i></div><div class="ceolab"><div class="role">CEO: ASTRA</div><div class="nm">ASTRA</div><div class="desc">Artificial Strategic Thinker &amp; Realignment Agent</div></div>`;
+  const depts=document.createElement('div'); depts.className='depts';
+  depts.innerHTML=Object.values(company).map(deptHtml).join('');
+  v.appendChild(ceo); v.appendChild(depts);
+  v.querySelectorAll('.node').forEach(n=>n.addEventListener('click',()=>openAkte(n.dataset.id)));
+  requestAnimationFrame(drawWires);
+}
+function center(el,host){const r=el.getBoundingClientRect(),o=host.getBoundingClientRect();
+  return {x:r.left-o.left+host.scrollLeft+r.width/2, top:r.top-o.top+host.scrollTop, bottom:r.bottom-o.top+host.scrollTop};}
+function drawWires(){
+  const host=document.getElementById('orgView'), svg=document.getElementById('wires');
+  const em=host.querySelector('.emblem'), depts=[...host.querySelectorAll('.dept')]; if(!em||!depts.length)return;
+  svg.setAttribute('width',host.scrollWidth); svg.setAttribute('height',host.scrollHeight);
+  const e=center(em,host); const busY=e.bottom+30;
+  let g=`<defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fb0ff" stop-opacity="1"/><stop offset="1" stop-color="#9b6bff" stop-opacity=".7"/></linearGradient>
+    <filter id="gl" x="-25%" y="-25%" width="150%" height="150%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g filter="url(#gl)">`;
+  g+=`<path d="M ${e.x} ${e.bottom} L ${e.x} ${busY}" stroke="url(#wg)" stroke-width="2.6" fill="none"/>`;
+  let dots='';
+  depts.forEach(d=>{const c=center(d,host);
+    g+=`<path d="M ${e.x} ${busY} C ${c.x} ${busY}, ${c.x} ${busY}, ${c.x} ${c.top}" stroke="url(#wg)" stroke-width="2.2" fill="none"/>`;
+    dots+=`<circle cx="${c.x}" cy="${c.top}" r="3.2" fill="#9bbcff"/>`;});
+  g+=`<circle cx="${e.x}" cy="${busY}" r="3.4" fill="#bcd3ff"/>`+dots;
+  svg.innerHTML=g+'</g>';
+}
+
+/* ---------- AKTE ---------- */
+function findAgent(id){for(const d of Object.values(company)){if(d.vp.id===id)return{a:d.vp,dept:d.title};for(const r of d.reports)if(r.id===id)return{a:r,dept:d.title};}return null;}
+function titleCase(s){return s.charAt(0)+s.slice(1).toLowerCase();}
+function akteData(id){
+  const f=findAgent(id), a=f.a, ext=!!a.external;
+  const skills=[{n:"Data Analysis",v:"3.2",bd:"info",lvl:.9},{n:"Creative Writing",v:"2.1",bd:"appr",lvl:.6},{n:"Code Generation",v:"1.5",bd:"info",lvl:.75},{n:"Translation",v:"4.0",bd:"info",lvl:.5},{n:"Strategic Planning",v:"1.0",bd:"appr",lvl:.8}];
+  const tools=[{n:"Search API (Google)",on:true},{n:"Code Interpreter (Sandboxed)",on:true},{n:"E-Mail Client (Read-Only)",on:true},{n:"Database (internal Read)",on:true},{n:"Slack Integration (Write)",on:false},{n:"Cloud Storage (Write)",on:false}];
+  const secrets=[{n:"API Key (OpenAI)",on:true},{n:"Database Credentials",on:true},{n:"SSH Key (Deploy)",on:false}];
+  const audit=[{ic:"⌕",t:"vor 8 Min",x:'Tool Call: <b>Search</b> "Markttrends 2026"',c:"0,03€"},{ic:"▦",t:"vor 22 Min",x:'Tool Call: <b>Analyze Document</b> „Q3_Report.pdf"',c:"0,15€"},{ic:"⚙",t:"vor 1 Std",x:'Tool Call: <b>Code Execution</b> (Python)',c:"0,08€"},{ic:"◷",t:"vor 1 Std",x:"Status: Aktiv aus Idle",c:"0,00€"},{ic:"✦",t:"gestern",x:"System: Modell-Parameter verfeinert",c:"0,00€"}];
+  return {a,dept:f.dept,ext,skills,tools,secrets,audit,
+    model: ext?"DeepSeek / Ollama (eigener Stack)":"claude-opus-4-8",
+    origin: ext?{type:"Extern · HTTP-Adapter",provider:"Eigene Aigency-Engine",endpoint:"http://localhost:8900/wake",auth:"Bearer Token"}:{type:"App-intern",provider:"Agency OS Runtime",endpoint:"—",auth:"Session"},
+    spend: ext?12.45:42.0, cap: ext?20:80};
+}
+let activeTab='IDENTITY';
+function openAkte(id){
+  const d=akteData(id), a=d.a;
+  hideAll();
+  const v=document.getElementById('akteView'); v.style.display='block';
+  const skills=d.skills.map(s=>`<div class="sk"><div class="top"><span>${s.n} <span style="color:var(--tx3);font-family:ui-monospace,monospace;font-size:11px">v${s.v}</span></span><span class="bd ${s.bd==='info'?'bd-info':'bd-appr'}">${s.bd==='info'?'auto':'approval'}</span><span class="vd">Details ›</span></div><div class="bar"><i style="width:${Math.round(s.lvl*100)}%"></i></div></div>`).join('');
+  const tools=d.tools.map((t,i)=>`<div class="acc"><span>${t.n}</span><span class="lk">⚷</span><span class="onoff ${t.on?'on':'off'}" data-acc="t${i}">${t.on?'ON':'OFF'}</span></div>`).join('');
+  const secrets=d.secrets.map((t,i)=>`<div class="acc"><span>${t.n}</span><span class="lk">⚷</span><span class="onoff ${t.on?'on':'off'}" data-acc="s${i}">${t.on?'ON':'OFF'}</span></div>`).join('');
+  const pct=Math.round(d.spend/d.cap*100);
+  const audit=d.audit.map(e=>`<div class="ev"><div class="eic">${e.ic}</div><div><div class="etime">${e.t}</div><div class="etext">${e.x}</div></div><div class="ecost">${e.c}</div></div>`).join('');
+  const tabs=['IDENTITY','SKILLS','ACCESS','PROPERTIES','ORIGIN'];
+  v.innerHTML=`
+    <div class="back" onclick="closeAkte()">‹ Zurück zum Org-Chart</div>
+    <div class="ahead glass">
+      ${ava(66,a.color,a.status,d.ext,{seed:a.n,photo:a.photo,icon:ICON[a.id]})}
+      <div><div class="nm">${a.n}${d.ext?' <span class="ext" style="vertical-align:6px">extern</span>':''}</div>
+        <div class="meta"><span><b>Rolle:</b> ${a.t}</span><span><b>Abteilung:</b> ${titleCase(d.dept)}</span><span><b>Reporting:</b> ${d.dept==='STRATEGY'||a.t.includes('VP')||a.t==='CTO'?'CEO ASTRA':'VP / Lead'}</span></div></div>
+      <div class="runpill"><span class="d"></span> ${a.status==='active'?'ACTIVE · RUNNING':a.status==='paused'?'PAUSED':'ONBOARDING'}</div>
+    </div>
+    <div class="tabs glass">${tabs.map(t=>`<div class="tab ${t===activeTab?'on':''}" data-tab="${t}">${t}</div>`).join('')}</div>
+    <div class="agrid">
+      <div>
+        <div class="card2" id="c-IDENTITY"><div class="ct">Identity <span class="ln"></span></div>
+          <div class="two">
+            <div><div class="subh">Basis-Information</div>
+              <div class="kv"><span class="k">Agent-ID</span><span class="v mono">${a.n}-89B2C</span></div>
+              <div class="kv"><span class="k">Erstellt</span><span class="v">2026-03-15</span></div>
+              <div class="kv"><span class="k">Modell</span><span class="v mono">${d.model}</span></div>
+              <div class="kv"><span class="k">Sprachen</span><span class="v">DE, EN, Mandarin</span></div>
+              <div class="kv"><span class="k">Secure Enclave</span><span class="v" style="color:#8df0c6">Aktiv</span></div></div>
+            <div><div class="subh">Kontaktpunkte</div>
+              <div class="kv"><span class="k">Primär-Interface</span><span class="v">${d.ext?'HTTP Endpoint':'API (intern)'}</span></div>
+              <div class="kv"><span class="k">Notification</span><span class="v">Slack #ai-ops</span></div>
+              <div class="kv"><span class="k">Eskalation</span><span class="v">${d.dept==='STRATEGY'?'CEO ASTRA':'Abteilungs-VP'}</span></div></div>
+          </div></div>
+        <div class="four">
+          <div class="card2" id="c-SKILLS"><div class="ct">Skills <span class="ln"></span></div>${skills}</div>
+          <div class="card2" id="c-ACCESS"><div class="ct">Access <span class="ln"></span></div>
+            <div class="subh">Tools &amp; Integrationen</div>${tools}
+            <div class="subh" style="margin-top:12px">Secrets &amp; Keys</div>${secrets}</div>
+          <div class="card2" id="c-PROPERTIES"><div class="ct">Properties <span class="ln"></span></div>
+            <div class="subh">Modell-Konfiguration</div>
+            <div class="kv"><span class="k">Temperature</span><span class="v mono">0.7</span></div>
+            <div class="kv"><span class="k">Max Tokens</span><span class="v mono">4096</span></div>
+            <div class="kv"><span class="k">Top P</span><span class="v mono">1.0</span></div>
+            <div class="budget"><div class="bt">BUDGET-METER</div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:6px"><span>${d.spend.toFixed(2)}€</span><span style="color:var(--tx3)">Cap ${d.cap.toFixed(0)}€/Mon</span></div>
+              <div class="bar" style="margin-top:7px"><i style="width:${pct}%"></i></div>
+              <svg class="spark" width="100%" height="34" viewBox="0 0 240 34" preserveAspectRatio="none"><polyline points="0,26 30,20 60,24 90,14 120,18 150,10 180,16 210,8 240,12" fill="none" stroke="#7fb0ff" stroke-width="2"/></svg></div></div>
+          <div class="card2" id="c-ORIGIN"><div class="ct">Origin <span class="ln"></span></div>
+            <div class="subh">Agent-Herkunft</div>
+            <div class="kv"><span class="k">Typ</span><span class="v" style="color:${d.ext?'#ffcb96':'#bcd3ff'}">${d.origin.type}</span></div>
+            <div class="kv"><span class="k">Provider</span><span class="v">${d.origin.provider}</span></div>
+            <div class="kv"><span class="k">Endpoint</span><span class="v mono" style="font-size:10px">${d.origin.endpoint}</span></div>
+            <div class="kv"><span class="k">Auth</span><span class="v">${d.origin.auth}</span></div>
+            <div class="origin-icons"><span>⚙</span><span>⤓</span><span>▦</span></div></div>
+        </div>
+      </div>
+      <div class="card2"><div class="audhead"><div class="ct" style="margin:0">Activity-Stream &amp; Audit-Log</div><div class="filter">Filter ▾</div></div>
+        ${audit}</div>
+    </div>`;
+  v.querySelectorAll('.onoff').forEach(o=>o.addEventListener('click',()=>{const on=o.classList.toggle('on');o.classList.toggle('off',!on);o.textContent=on?'ON':'OFF';}));
+  v.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+    activeTab=t.dataset.tab; v.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
+    v.querySelectorAll('.card2').forEach(c=>c.classList.remove('hl'));
+    const card=document.getElementById('c-'+activeTab); if(card){card.classList.add('hl');card.scrollIntoView({behavior:'smooth',block:'center'});}
+  }));
+  document.querySelector('.stage').scrollTop=0;
+}
+function hideAll(){['orgView','akteView','onboardView','peopleView','skillsView','govView'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display='none';});}
+function showOrg(){hideAll();setNav('org');document.getElementById('orgView').style.display='block';requestAnimationFrame(drawWires);}
+function closeAkte(){showOrg();}
+window.closeAkte=closeAkte; window.showOrg=showOrg;
+
+/* ---------- ONBOARDING: externen Agenten einstellen (USP) ---------- */
+const ADTYPES=[
+  {k:'http',i:'webhook',t:'HTTP / Webhook',d:'Extern laufender Agent — z. B. deine Aigency-Engine (/wake)'},
+  {k:'process',i:'terminal-2',t:'Process / CLI',d:'Lokales Skript oder CLI, z. B. Claude Code'},
+  {k:'mcp',i:'plug-connected',t:'MCP-Server',d:'Model-Context-Protocol-Tools / -Agent'},
+  {k:'openai',i:'api',t:'OpenAI-kompatibel',d:'/v1/chat/completions (vLLM, Ollama …)'},
+  {k:'claude_local',i:'robot',t:'Claude-Agent',d:'Anthropic API / Claude-Code-Session'},
+  {k:'internal',i:'sparkles',t:'App-intern',d:'In Agency OS erstellter Agent'}];
+const MOTIFS=['server-bolt','robot','cpu','brain','target-arrow','trending-up','feather','plug-connected'];
+const DEFICON={http:'server-bolt',process:'terminal-2',mcp:'plug-connected',openai:'api',claude_local:'robot',internal:'sparkles'};
+let step=1, na={};
+function resetNa(){na={type:'http',url:'http://localhost:8900/wake',taskField:'task',headers:'',name:'',role:'',dept:'Engineering',icon:'server-bolt',budget:20,testing:false,tested:false,
+  skills:{'SEO-Audit':true,'Live-URL-Fetch':true,'PageSpeed / CWV':false},
+  tools:{'live_url_fetch':true,'page_speed_audit':true,'headless_chromium (Render-DOM)':false}};}
+function openOnboard(){resetNa();step=1;hideAll();document.getElementById('onboardView').style.display='block';renderStep();document.querySelector('.stage').scrollTop=0;}
+window.openOnboard=openOnboard;
+function wizType(k){na.type=k;na.icon=DEFICON[k]||'sparkles';na.tested=false;renderStep();}
+function wizNav(d){step=Math.min(4,Math.max(1,step+d));renderStep();document.querySelector('.stage').scrollTop=0;}
+function naField(k,v){na[k]=v;}
+function naMotif(m){na.icon=m;renderStep();}
+function naToggle(group,key,el){na[group][key]=!na[group][key];const on=na[group][key];el.className='onoff '+(on?'on':'off');el.textContent=on?'AN':'AUS';}
+function naTest(){na.testing=true;na.tested=false;renderStep();setTimeout(()=>{na.testing=false;na.tested=true;renderStep();},1100);}
+function wizFinish(){
+  const id='new_'+Date.now(); const name=(na.name||'NEXUS').toUpperCase();
+  const ag={id,t:na.role||'Externer Agent',n:name,color:'blue',status:'onb',external:na.type!=='internal',icon:na.icon};
+  ICON[id]=na.icon; (company[na.dept]||company.Engineering).reports.push(ag);
+  renderOrg(); openAkte(id);
+}
+window.wizType=wizType;window.wizNav=wizNav;window.naField=naField;window.naMotif=naMotif;window.naToggle=naToggle;window.naTest=naTest;window.wizFinish=wizFinish;
+function renderStep(){
+  const host=document.getElementById('onboardView');
+  const labels=['Herkunft','Verbindung','Identität & Org','Ausstattung'];
+  const ind=labels.map((l,i)=>{const n=i+1;const cls=n===step?'on':(n<step?'done':'');return `<div class="stp ${cls}"><span class="num">${n<step?'✓':n}</span> ${l}</div>`;}).join('');
+  const tl=(ADTYPES.find(t=>t.k===na.type)||{}).t||'';
+  let body='';
+  if(step===1){
+    body=`<div class="wcard glass"><div class="ct">Herkunft / Adapter-Typ <span class="ln"></span></div>
+      <div class="tiles">${ADTYPES.map(t=>`<div class="tile ${na.type===t.k?'sel':''}" onclick="wizType('${t.k}')"><i class="ti ti-${t.i}"></i><div class="tt">${t.t}</div><div class="td">${t.d}</div></div>`).join('')}</div></div>
+      <div class="wnav"><div class="back" onclick="showOrg()" style="margin:0">‹ Abbrechen</div><div class="sp"></div><button class="btn primary" onclick="wizNav(1)">Weiter ›</button></div>`;
+  } else if(step===2){
+    body=`<div class="wcard glass"><div class="ct">Verbindung — ${tl} <span class="ln"></span></div>
+      <div class="fld"><label>Webhook-URL</label><input value="${na.url}" oninput="naField('url',this.value)"></div>
+      <div class="fld"><label>Aufgaben-Feld (payloadTemplate)</label><input value="${na.taskField}" oninput="naField('taskField',this.value)"></div>
+      <div class="fld"><label>Header (optional)</label><input placeholder="Authorization: Bearer …" value="${na.headers}" oninput="naField('headers',this.value)"></div>
+      <button class="testbtn" onclick="naTest()"><i class="ti ti-plug" style="vertical-align:-2px"></i> Verbindung testen</button>
+      <div class="testres ${na.testing?'run':(na.tested?'ok':'')}">${na.testing?'Teste Verbindung …':(na.tested?'✓ erreichbar · HTTP 200 · /wake erkannt — Contract ok, Aufgabe wird über „'+na.taskField+'" übergeben':'')}</div></div>
+      <div class="wnav"><button class="btn" onclick="wizNav(-1)">‹ Zurück</button><div class="sp"></div><button class="btn primary" onclick="wizNav(1)">Weiter ›</button></div>`;
+  } else if(step===3){
+    body=`<div class="wcard glass"><div class="ct">Identität &amp; Org-Einhängung <span class="ln"></span></div>
+      <div class="fld"><label>Name</label><input placeholder="z. B. NEXUS" value="${na.name}" oninput="naField('name',this.value)"></div>
+      <div class="fld"><label>Rolle / Titel</label><input placeholder="z. B. SEO-Auditor (extern)" value="${na.role}" oninput="naField('role',this.value)"></div>
+      <div class="fld"><label>Abteilung</label><select onchange="naField('dept',this.value)">${['Strategy','Content','Engineering','Sales'].map(d=>`<option ${na.dept===d?'selected':''}>${d}</option>`).join('')}</select></div>
+      <div class="fld"><label>Motiv <span style="color:var(--tx3)">(Platzhalter — finales Set via Stitch)</span></label><div class="motifs">${MOTIFS.map(m=>`<div class="motif ${na.icon===m?'sel':''}" onclick="naMotif('${m}')"><i class="ti ti-${m}"></i></div>`).join('')}</div></div></div>
+      <div class="wnav"><button class="btn" onclick="wizNav(-1)">‹ Zurück</button><div class="sp"></div><button class="btn primary" onclick="wizNav(1)">Weiter ›</button></div>`;
+  } else {
+    const sk=Object.keys(na.skills).map(s=>`<div class="acc"><span>${s}</span><span class="onoff ${na.skills[s]?'on':'off'}" onclick="naToggle('skills','${s}',this)">${na.skills[s]?'AN':'AUS'}</span></div>`).join('');
+    const tg=Object.keys(na.tools).map(s=>`<div class="acc"><span>${s}</span><span class="onoff ${na.tools[s]?'on':'off'}" onclick="naToggle('tools','${s}',this)">${na.tools[s]?'AN':'AUS'}</span></div>`).join('');
+    body=`<div class="wcard glass"><div class="ct">Skills, Zugang &amp; Budget <span class="ln"></span></div>
+      <div class="subh">Skills (Policy: auto / approval)</div>${sk}
+      <div class="subh" style="margin-top:14px">Tool-Zugang — Toggles (default-deny)</div>${tg}
+      <div class="fld" style="margin-top:16px"><label>Budget / Cost-Cap (€ pro Monat)</label><input type="number" value="${na.budget}" oninput="naField('budget',this.value)" style="max-width:170px"></div>
+      <div class="hint" style="margin-top:4px"><b>Gleichstellung:</b> Dieser externe Agent bekommt dieselbe Akte, Skills, Toggles, das Budget und den append-only Audit-Trail wie ein interner — der Kern erzwingt sie, nicht der Agent.</div></div>
+      <div class="wnav"><button class="btn" onclick="wizNav(-1)">‹ Zurück</button><div class="sp"></div><button class="btn primary" onclick="wizFinish()"><i class="ti ti-check" style="vertical-align:-2px"></i> Agent einstellen</button></div>`;
+  }
+  host.innerHTML=`<div class="wiz-h">Agent einstellen</div><div class="wiz-sub">Binde einen eigenen/externen Agenten als vollwertigen Mitarbeiter ein — mit Akte, Skills, Rechten, Budget und Audit. „Bring your own agent" ist erste Klasse, nicht Add-on.</div><div class="steps">${ind}</div>${body}`;
+}
+
+/* ---------- NAV + weitere Views ---------- */
+function setNav(view){document.querySelectorAll('.side .nav').forEach(n=>n.classList.toggle('on',n.dataset.view===view));}
+function allAgents(){const o=[];for(const [dn,d] of Object.entries(company)){o.push({...d.vp,dept:dn});d.reports.forEach(r=>o.push({...r,dept:dn}));}return o;}
+
+function showPeople(){hideAll();setNav('people');const v=document.getElementById('peopleView');v.style.display='block';
+  const ags=allAgents();
+  const m=`<div class="mcards">
+    <div class="metric"><div class="lab">Mitarbeiter</div><div class="val">${ags.length+1}</div></div>
+    <div class="metric"><div class="lab">Aktiv</div><div class="val good">${ags.filter(a=>a.status==='active').length+1}</div></div>
+    <div class="metric"><div class="lab">Extern eingebunden</div><div class="val">${ags.filter(a=>a.external).length}</div></div>
+    <div class="metric"><div class="lab">Im Onboarding</div><div class="val">${ags.filter(a=>a.status==='onb').length}</div></div></div>`;
+  const rows=ags.map(a=>`<div class="prow" data-id="${a.id}">${ava(40,a.color,a.status,a.external,{seed:a.n,photo:a.photo,icon:ICON[a.id]})}
+    <div style="min-width:0"><div class="nm" style="font-size:13.5px">${a.n} ${a.external?'<span class="ext">extern</span>':''}</div><div class="rl">${a.t} · ${a.dept}</div></div>
+    <div style="margin-left:auto;font-size:11px;color:var(--tx3)">${a.external?'HTTP':'intern'}</div></div>`).join('');
+  v.innerHTML=`<div class="h2">People</div><div class="wiz-sub">Alle Agenten der Company — Personalakte per Klick.</div>${m}<div class="pgrid">${rows}</div>`;
+  v.querySelectorAll('[data-id]').forEach(el=>el.onclick=()=>openAkte(el.dataset.id));
+  document.querySelector('.stage').scrollTop=0;}
+
+const SKILLCAT=[{n:'SEO-Audit',v:'3.1.0',pol:'auto',trust:'bundled'},{n:'LinkedIn-Redaktion',v:'2.0.0',pol:'auto',trust:'company'},{n:'Code-Review',v:'2.2.0',pol:'auto',trust:'bundled'},{n:'Lead-Qualifizierung',v:'1.1.0',pol:'auto',trust:'company'},{n:'Bau-Tickets',v:'1.5.0',pol:'approval',trust:'bundled'},{n:'Strategie-Planung',v:'2.3.0',pol:'approval',trust:'bundled'}];
+const DEPTSKILLS={Strategy:['Strategie-Planung','Lead-Qualifizierung'],Content:['LinkedIn-Redaktion'],Engineering:['Code-Review','Bau-Tickets','SEO-Audit'],Sales:['Lead-Qualifizierung']};
+function showSkills(){hideAll();setNav('skills');const v=document.getElementById('skillsView');v.style.display='block';
+  const ags=allAgents();
+  const cat=SKILLCAT.map(s=>`<div class="card2"><div style="display:flex;align-items:center;gap:8px"><b style="font-weight:600">${s.n}</b><span style="color:var(--tx3);font-family:ui-monospace,monospace;font-size:11px">v${s.v}</span><span class="pol ${s.pol==='auto'?'pol-auto':'pol-appr'}" style="margin-left:auto">${s.pol}</span></div><div class="rl" style="margin-top:8px">Trust: ${s.trust} · Schema: ${s.pol==='approval'?'input_schema ✓':'—'}</div></div>`).join('');
+  const head=SKILLCAT.map(s=>`<th>${s.n.split(/[ -]/)[0]}</th>`).join('');
+  const body=ags.map(a=>{const mine=DEPTSKILLS[a.dept]||[];return `<tr><td><div style="display:flex;align-items:center;gap:9px">${ava(28,a.color,a.status,a.external,{seed:a.n,icon:ICON[a.id]})} ${a.n}</div></td>${SKILLCAT.map(s=>{const has=mine.includes(s.n);return `<td>${has?`<span class="cell ${s.pol==='auto'?'auto':'appr'}">${s.pol==='auto'?'A':'!'}</span>`:'<span class="cell none">·</span>'}</td>`}).join('')}</tr>`}).join('');
+  const m=`<div class="mcards"><div class="metric"><div class="lab">Skills im Katalog</div><div class="val">${SKILLCAT.length}</div></div><div class="metric"><div class="lab">auto</div><div class="val good">${SKILLCAT.filter(s=>s.pol==='auto').length}</div></div><div class="metric"><div class="lab">approval-required</div><div class="val">${SKILLCAT.filter(s=>s.pol==='approval').length}</div></div><div class="metric"><div class="lab">Abdeckung</div><div class="val">${Math.round(ags.filter(a=>(DEPTSKILLS[a.dept]||[]).length).length/ags.length*100)}%</div></div></div>`;
+  v.innerHTML=`<div class="h2">Skills</div><div class="wiz-sub">Katalog mit Version &amp; Policy (auto / approval) und die Skill-Matrix über alle Agenten.</div>${m}
+    <div class="ct" style="margin:18px 0 12px">Katalog <span class="ln"></span></div><div class="four" style="grid-template-columns:repeat(3,1fr)">${cat}</div>
+    <div class="ct" style="margin:24px 0 12px">Skill-Matrix <span class="ln"></span></div>
+    <div class="card2"><table class="matrix"><thead><tr><th>Agent</th>${head}</tr></thead><tbody>${body}</tbody></table>
+    <div class="rl" style="margin-top:12px"><span class="cell auto" style="width:18px;height:18px">A</span> auto&nbsp;&nbsp;<span class="cell appr" style="width:18px;height:18px">!</span> approval</div></div>`;
+  document.querySelector('.stage').scrollTop=0;}
+
+function budgetOf(a){if(a.status==='paused')return [12,12];if(a.external)return [12,20];if((DEPTSKILLS[a.dept]||[]).length>=3||(a.t||'').includes('VP')||a.t==='CTO')return [22,80];return [6,15];}
+function showGov(){hideAll();setNav('gov');const v=document.getElementById('govView');v.style.display='block';
+  const ags=allAgents(); let spend=0,cap=0; ags.forEach(a=>{const b=budgetOf(a);spend+=b[0];cap+=b[1];});
+  const approvals=[['Skill „Bau-Tickets" Freigabe','CYPHER · Engineering'],['Budget-Override +10€/Mon','SIRIUS · extern'],['Neuer Hire bestätigen','MORPHEUS · extern']];
+  const audit=[['⤓','tool_call: live_url_fetch','Aigency Engine · vor 8 Min','0,03€'],['⚖','Budget-Cap erreicht → Auto-Pause','MARS · gestern','—'],['＋','Agent eingestellt','RHEA (extern) · gestern','—'],['✦','Skill zugewiesen: Code-Review','NEO · vor 2 Std','—'],['◷','Status: aktiv','TRINITY · vor 3 Std','—']];
+  const m=`<div class="mcards">
+    <div class="metric"><div class="lab">Spend (Monat)</div><div class="val">${spend}€</div></div>
+    <div class="metric"><div class="lab">Budget-Auslastung</div><div class="val">${Math.round(spend/cap*100)}%</div></div>
+    <div class="metric"><div class="lab">Offene Approvals</div><div class="val">${approvals.length}</div></div>
+    <div class="metric"><div class="lab">Audit-Events heute</div><div class="val">128</div></div></div>`;
+  const appr=approvals.map(a=>`<div class="approval"><div><div style="font-weight:600;font-size:13px">${a[0]}</div><div class="rl">${a[1]}</div></div><div style="margin-left:auto;display:flex;gap:8px"><span class="mini-btn ok" onclick="govDecide(this)">Freigeben</span><span class="mini-btn no" onclick="govDecide(this)">Ablehnen</span></div></div>`).join('');
+  const bud=ags.slice(0,7).map(a=>{const b=budgetOf(a);const p=Math.round(b[0]/b[1]*100);return `<div style="margin-bottom:11px"><div style="display:flex;justify-content:space-between;font-size:12px"><span>${a.n}</span><span style="color:var(--tx3)">${b[0]}€ / ${b[1]}€</span></div><div class="bar" style="margin-top:5px"><i style="width:${p}%;${p>=100?'background:linear-gradient(90deg,var(--amber),var(--red))':''}"></i></div></div>`}).join('');
+  const feed=audit.map(e=>`<div class="ev"><div class="eic">${e[0]}</div><div><div class="etext">${e[1]}</div><div class="etime">${e[2]}</div></div><div class="ecost">${e[3]}</div></div>`).join('');
+  v.innerHTML=`<div class="h2">Governance</div><div class="wiz-sub">Budgets &amp; Cost-Caps, Approvals und der append-only Audit-Trail — Company „AIgency", isoliert.</div>${m}
+    <div class="agrid"><div>
+      <div class="card2"><div class="ct">Approvals <span class="ln"></span></div>${appr}</div>
+      <div class="card2" style="margin-top:14px"><div class="ct">Budget je Agent <span class="ln"></span></div>${bud}</div></div>
+    <div class="card2"><div class="ct">Audit-Log (Company-weit) <span class="ln"></span></div>${feed}</div></div>`;
+  document.querySelector('.stage').scrollTop=0;}
+function govDecide(el){const row=el.closest('.approval');row.style.opacity='.35';setTimeout(()=>row.remove(),200);}
+window.showPeople=showPeople;window.showSkills=showSkills;window.showGov=showGov;window.govDecide=govDecide;
+
+window.addEventListener('resize',()=>{if(document.getElementById('orgView').style.display==='block')drawWires();});
+document.querySelector('.stage').addEventListener('scroll',()=>{if(document.getElementById('orgView').style.display==='block')drawWires();});
+renderOrg();
+</script>
+</body>
+</html>

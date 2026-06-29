@@ -1,0 +1,24 @@
+# Agency OS — lokale Infrastruktur (self-hosted, DSGVO-konform auf eigenem VPS).
+# Postgres 17 mit pgvector-Erweiterung (für RAG/Knowledge-Folders, M7).
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: agency_os_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-agency}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_local}
+      POSTGRES_DB: ${POSTGRES_DB:-agency_os}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - agency_os_pgdata:/var/lib/postgresql/data
+      - ./packages/db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-agency} -d ${POSTGRES_DB:-agency_os}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  agency_os_pgdata:

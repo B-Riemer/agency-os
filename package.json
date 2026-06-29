@@ -1,0 +1,21 @@
+{
+  "name": "agency-os",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Steuerungs- und Personalwirtschafts-System für eine KI-Agentur (Best-of Langdock + Paperclip, Bring-your-own-Agent).",
+  "license": "UNLICENSED",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "db:generate": "pnpm --filter @agency-os/db db:generate",
+    "db:migrate": "pnpm --filter @agency-os/db db:migrate",
+    "dev:db": "docker compose up -d",
+    "dev:api": "pnpm --filter @agency-os/api start:dev",
+    "dev:web": "pnpm --filter @agency-os/web dev"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

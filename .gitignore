@@ -1,0 +1,10 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+*.log
+.DS_Store
+# Drizzle generierte Migrationen behalten wir (packages/db/drizzle), aber keine lokalen Dumps:
+*.dump
+coverage/
