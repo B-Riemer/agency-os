@@ -70,6 +70,8 @@ async function main() {
   await mk({ displayName: "NEO", role: "Lead Architect", departmentId: eng.id, managerId: cypher.id, budgetMonthlyCents: 1500 });
   const morpheus = await mk({ displayName: "MORPHEUS", role: "DevOps Lead (extern)", departmentId: eng.id, managerId: cypher.id, ...ext(), spentMonthlyCents: 1700, sovereignty: "global" });
   await mk({ displayName: "TRINITY", role: "ML Engineer", departmentId: eng.id, managerId: cypher.id, budgetMonthlyCents: 1500 });
+  // Process-/CLI-Demo: lokaler Agent ohne externes Setup. `echo` gibt die Aufgabe als Ergebnis zurück.
+  const echoAgent = await mk({ displayName: "ECHO", role: "Local Script (Process-Demo)", departmentId: eng.id, managerId: cypher.id, kind: "external", adapterType: "process", adapterConfig: { command: "echo", taskMode: "arg" }, budgetMonthlyCents: 500 });
 
   // Sales
   const mercury = await mk({ displayName: "MERCURY", role: "VP of Sales", departmentId: sal.id, managerId: ceo.id, budgetMonthlyCents: 8000 });
@@ -141,7 +143,7 @@ async function main() {
   await db.insert(userRoles).values({ userId: owner.id, roleId: boardRole.id, companyId: cid });
 
   // eslint-disable-next-line no-console
-  console.log(`Seed fertig. Company-ID: ${cid}\nExterne Agenten — MORPHEUS: ${morpheus.id}\nNatascha (echt, :8900/wake): ${natascha.id}`);
+  console.log(`Seed fertig. Company-ID: ${cid}\nExterne Agenten — MORPHEUS: ${morpheus.id}\nNatascha (echt, :8900/wake): ${natascha.id}\nECHO (process-Demo, sofort lauffähig): ${echoAgent.id}`);
   process.exit(0);
 }
 

@@ -25,6 +25,8 @@ export interface ExecutionContext {
   agentId: string;
   /** Die eigentliche Aufgabe (z. B. aus einem Issue). */
   task: string;
+  /** Persona/System-Prompt des Agenten (für LLM-Adapter wie openai). NIE für Secrets. */
+  systemPrompt?: string;
   /** Freigeschaltete Skills (Policy bereits aufgelöst). */
   allowedSkills: Array<{ key: string; policy: "auto" | "approval_required" }>;
   /** Tool-Allowlist = Toggles(agent)=true ∩ Skill-erlaubt. Der Kern erzwingt sie zusätzlich. */
@@ -78,3 +80,5 @@ export interface AgentAdapter<Config = Record<string, unknown>> {
 
 // Mitgelieferte Adapter aus dem Haupteinstieg verfügbar machen.
 export { httpAdapter, type HttpAdapterConfig } from "./http-adapter.js";
+export { processAdapter, type ProcessAdapterConfig } from "./process-adapter.js";
+export { openAiAdapter, type OpenAiAdapterConfig } from "./openai-adapter.js";

@@ -15,9 +15,11 @@ export type Agent = {
   displayName: string;
   role?: string | null;
   departmentId?: string | null;
+  managerId?: string | null;
   kind: "internal" | "external";
   adapterType: string;
   adapterConfig?: Record<string, unknown>;
+  modelConfig?: Record<string, unknown> | null;
   status: "onboarding" | "active" | "paused" | "terminated";
   systemPrompt?: string | null;
   budgetMonthlyCents?: number | null;

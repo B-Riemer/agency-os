@@ -59,6 +59,7 @@ export class RunsService {
       runId,
       agentId,
       task,
+      systemPrompt: agent.systemPrompt ?? undefined,
       allowedSkills,
       allowedTools,
       knowledgeFolders, // Permission-Mirroring: nur freigeschaltete RAG-Quellen

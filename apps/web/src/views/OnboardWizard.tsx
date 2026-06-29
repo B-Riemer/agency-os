@@ -25,6 +25,14 @@ export function OnboardWizard({
   const [type, setType] = useState("http");
   const [url, setUrl] = useState("http://localhost:8900/wake");
   const [taskField, setTaskField] = useState("task");
+  // Process / CLI
+  const [command, setCommand] = useState("echo");
+  const [cmdArgs, setCmdArgs] = useState("");
+  const [taskMode, setTaskMode] = useState("stdin");
+  // OpenAI-kompatibel
+  const [baseUrl, setBaseUrl] = useState("https://api.openai.com/v1");
+  const [model, setModel] = useState("gpt-4o-mini");
+  const [apiKeyEnv, setApiKeyEnv] = useState("OPENAI_API_KEY");
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
   const [deptId, setDeptId] = useState<string>(departments[0]?.id ?? "");
@@ -33,10 +41,21 @@ export function OnboardWizard({
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [testRes, setTestRes] = useState<{ ok: boolean; text: string } | null>(null);
 
+  // Adapter-Config je Typ zusammenbauen (USP: ein Vertrag, mehrere Anschlussarten).
+  function buildConfig(): Record<string, unknown> {
+    if (type === "http") return { url, taskField, timeoutMs: 300000 };
+    if (type === "process")
+      return { command, args: cmdArgs.trim() ? cmdArgs.trim().split(/\s+/) : [], taskMode };
+    if (type === "openai") return { baseUrl, model, apiKeyEnv };
+    return {};
+  }
+  // Welche Typen haben einen funktionierenden Adapter (Verbindungstest + Lauf)?
+  const RUNNABLE = ["http", "process", "openai"];
+
   async function testConnection() {
     setTestRes(null);
     try {
-      const r = await api.testConfig(type, { url, taskField });
+      const r = await api.testConfig(type, buildConfig());
       setTestRes({ ok: !!r.ok, text: r.ok ? `✓ erreichbar${r.detail ? " · " + r.detail : ""}` : `⚠ ${r.detail ?? "nicht erreichbar"}` });
     } catch (e: any) {
       setTestRes({ ok: false, text: `⚠ ${e.message}` });
@@ -55,7 +74,7 @@ export function OnboardWizard({
         departmentId: deptId || undefined,
         kind: ext ? "external" : "internal",
         adapterType: type,
-        adapterConfig: type === "http" ? { url, taskField, timeoutMs: 300000 } : {},
+        adapterConfig: buildConfig(),
         budgetMonthlyCents: Math.round(budget * 100),
       });
       let testText = "";
@@ -114,9 +133,45 @@ export function OnboardWizard({
         <>
           <div className="card2">
             <div className="ct">Verbindung <span className="ln" /></div>
-            <div className="fld"><label>Webhook-URL</label><input value={url} onChange={(e) => setUrl(e.target.value)} /></div>
-            <div className="fld"><label>Aufgaben-Feld (payloadTemplate)</label><input value={taskField} onChange={(e) => setTaskField(e.target.value)} /></div>
-            <button className="btn" onClick={testConnection}>Verbindung testen</button>
+
+            {type === "http" && (
+              <>
+                <div className="fld"><label>Webhook-URL</label><input value={url} onChange={(e) => setUrl(e.target.value)} /></div>
+                <div className="fld"><label>Aufgaben-Feld (payloadTemplate)</label><input value={taskField} onChange={(e) => setTaskField(e.target.value)} /></div>
+              </>
+            )}
+
+            {type === "process" && (
+              <>
+                <div className="fld"><label>Kommando</label><input placeholder="z. B. python3 oder echo" value={command} onChange={(e) => setCommand(e.target.value)} /></div>
+                <div className="fld"><label>Argumente (durch Leerzeichen getrennt)</label><input placeholder="z. B. agent.py --mode run" value={cmdArgs} onChange={(e) => setCmdArgs(e.target.value)} /></div>
+                <div className="fld"><label>Aufgabe übergeben via</label>
+                  <select value={taskMode} onChange={(e) => setTaskMode(e.target.value)}>
+                    <option value="stdin">stdin (Standard)</option>
+                    <option value="arg">als letztes Argument</option>
+                    <option value="env">ENV AGENCY_TASK</option>
+                  </select>
+                </div>
+                <div className="sub" style={{ marginTop: 6 }}>Ergebnis kommt aus stdout. Secrets werden als ENV injiziert (nie im Prompt).</div>
+              </>
+            )}
+
+            {type === "openai" && (
+              <>
+                <div className="fld"><label>Basis-URL</label><input placeholder="https://api.openai.com/v1 · http://localhost:11434/v1" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} /></div>
+                <div className="fld"><label>Modell</label><input placeholder="gpt-4o-mini · llama3.1 · mistral" value={model} onChange={(e) => setModel(e.target.value)} /></div>
+                <div className="fld"><label>API-Key aus Secret (ENV-Name)</label><input placeholder="OPENAI_API_KEY" value={apiKeyEnv} onChange={(e) => setApiKeyEnv(e.target.value)} /></div>
+                <div className="sub" style={{ marginTop: 6 }}>Der Key kommt zur Laufzeit aus einem gebundenen Secret — nicht hier eintragen.</div>
+              </>
+            )}
+
+            {!RUNNABLE.includes(type) && (
+              <div className="sub">Für diesen Typ gibt es noch keinen lauffähigen Adapter. Der Agent wird angelegt; Läufe folgen in einer späteren Phase.</div>
+            )}
+
+            {RUNNABLE.includes(type) && (
+              <button className="btn" onClick={testConnection} style={{ marginTop: 10 }}>Verbindung testen</button>
+            )}
             {testRes && <div className={"result " + (testRes.ok ? "ok" : "err")}>{testRes.text}</div>}
           </div>
           <div className="wnav">
