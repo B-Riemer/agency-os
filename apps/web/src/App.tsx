@@ -18,6 +18,7 @@ export function App() {
   const [view, setView] = useState<View>("org");
   const [selId, setSelId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [auth, setAuth] = useState<{ enabled: boolean; email: string | null }>({ enabled: false, email: null });
 
   async function refresh(cid?: string) {
     const id = cid ?? company?.id;
@@ -27,8 +28,16 @@ export function App() {
     setAudit(au);
   }
 
+  async function logout() {
+    await api.logout().catch(() => {});
+    window.location.reload();
+  }
+
   async function boot() {
     try {
+      const cfg = await api.authConfig().catch(() => ({ enabled: false }));
+      const me = await api.me().catch(() => null);
+      setAuth({ enabled: cfg.enabled, email: me && me.email !== "local@dev" ? me.email : null });
       const cs = await api.companies();
       if (!cs.length) {
         setErr("Keine Company gefunden — bitte Seed ausführen: pnpm --filter @agency-os/api seed");
@@ -86,6 +95,15 @@ export function App() {
           </div>
           <div className="search"><span>⌕</span><input placeholder="Agenten suchen …" /></div>
           <div className="right">
+            {auth.enabled &&
+              (auth.email ? (
+                <span style={{ color: "var(--tx2)", fontSize: 13, display: "flex", alignItems: "center", gap: 8 }}>
+                  {auth.email}
+                  <a onClick={logout} style={{ cursor: "pointer", color: "var(--tx3)" }}>Logout</a>
+                </span>
+              ) : (
+                <a className="hirebtn" href={api.loginUrl()}>Login</a>
+              ))}
             <button className="hirebtn" onClick={() => setView("onboard")}>+ Agent einstellen</button>
           </div>
         </div>

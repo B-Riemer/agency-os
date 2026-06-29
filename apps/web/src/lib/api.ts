@@ -33,8 +33,15 @@ export type Agent = {
 export type Company = { id: string; name: string; slug: string };
 export type Department = { id: string; name: string; key: string };
 
+export type Me = { id: string; email: string; roleKeys: string[] } | null;
+
 export const api = {
   base: BASE,
+  // Auth / OIDC
+  authConfig: () => j<{ enabled: boolean }>("/auth/config"),
+  me: () => j<Me>("/auth/me"),
+  logout: () => j("/auth/logout", { method: "POST" }),
+  loginUrl: () => BASE + "/auth/login",
   companies: () => j<Company[]>("/companies"),
   departments: (c: string) => j<Department[]>(`/companies/${c}/departments`),
   agents: (c: string) => j<Agent[]>(`/companies/${c}/agents`),

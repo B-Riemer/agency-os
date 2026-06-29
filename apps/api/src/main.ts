@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import "./env.js"; // .env laden, bevor andere Module evaluiert werden
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { FastifyAdapter, type NestFastifyApplication } from "@nestjs/platform-fastify";
