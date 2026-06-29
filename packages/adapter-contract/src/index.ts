@@ -82,3 +82,4 @@ export interface AgentAdapter<Config = Record<string, unknown>> {
 export { httpAdapter, type HttpAdapterConfig } from "./http-adapter.js";
 export { processAdapter, type ProcessAdapterConfig } from "./process-adapter.js";
 export { openAiAdapter, type OpenAiAdapterConfig } from "./openai-adapter.js";
+export { mcpAdapter, type McpAdapterConfig, type McpBrainConfig } from "./mcp-adapter.js";

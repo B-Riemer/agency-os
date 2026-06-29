@@ -3,17 +3,19 @@ import {
   httpAdapter,
   processAdapter,
   openAiAdapter,
+  mcpAdapter,
   type AgentAdapter,
 } from "@agency-os/adapter-contract";
 
 // Registry der verfügbaren Adapter-Typen. Plugin-erweiterbar (register()).
-// Bring-your-own-Agent: HTTP (/wake), Process/CLI (lokale Skripte), OpenAI-kompatibel.
+// Bring-your-own-Agent: HTTP (/wake), Process/CLI, OpenAI-kompatibel, MCP-Server.
 @Injectable()
 export class AdapterRegistry {
   private readonly map = new Map<string, AgentAdapter<any>>([
     [httpAdapter.type, httpAdapter],
     [processAdapter.type, processAdapter],
     [openAiAdapter.type, openAiAdapter],
+    [mcpAdapter.type, mcpAdapter],
   ]);
 
   get(type: string): AgentAdapter<any> | undefined {

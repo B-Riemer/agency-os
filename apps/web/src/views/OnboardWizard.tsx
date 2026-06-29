@@ -29,10 +29,15 @@ export function OnboardWizard({
   const [command, setCommand] = useState("echo");
   const [cmdArgs, setCmdArgs] = useState("");
   const [taskMode, setTaskMode] = useState("stdin");
-  // OpenAI-kompatibel
+  // OpenAI-kompatibel (auch "brain" für MCP)
   const [baseUrl, setBaseUrl] = useState("https://api.openai.com/v1");
   const [model, setModel] = useState("gpt-4o-mini");
   const [apiKeyEnv, setApiKeyEnv] = useState("OPENAI_API_KEY");
+  // MCP-Server
+  const [mcpTransport, setMcpTransport] = useState("stdio");
+  const [mcpCommand, setMcpCommand] = useState("npx");
+  const [mcpArgs, setMcpArgs] = useState("-y @modelcontextprotocol/server-everything");
+  const [mcpUrl, setMcpUrl] = useState("http://localhost:3000/mcp");
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
   const [deptId, setDeptId] = useState<string>(departments[0]?.id ?? "");
@@ -47,10 +52,17 @@ export function OnboardWizard({
     if (type === "process")
       return { command, args: cmdArgs.trim() ? cmdArgs.trim().split(/\s+/) : [], taskMode };
     if (type === "openai") return { baseUrl, model, apiKeyEnv };
+    if (type === "mcp") {
+      const base =
+        mcpTransport === "http"
+          ? { transport: "http", url: mcpUrl }
+          : { transport: "stdio", command: mcpCommand, args: mcpArgs.trim() ? mcpArgs.trim().split(/\s+/) : [] };
+      return { ...base, brain: { baseUrl, model, apiKeyEnv } };
+    }
     return {};
   }
   // Welche Typen haben einen funktionierenden Adapter (Verbindungstest + Lauf)?
-  const RUNNABLE = ["http", "process", "openai"];
+  const RUNNABLE = ["http", "process", "openai", "mcp"];
 
   async function testConnection() {
     setTestRes(null);
@@ -162,6 +174,30 @@ export function OnboardWizard({
                 <div className="fld"><label>Modell</label><input placeholder="gpt-4o-mini · llama3.1 · mistral" value={model} onChange={(e) => setModel(e.target.value)} /></div>
                 <div className="fld"><label>API-Key aus Secret (ENV-Name)</label><input placeholder="OPENAI_API_KEY" value={apiKeyEnv} onChange={(e) => setApiKeyEnv(e.target.value)} /></div>
                 <div className="sub" style={{ marginTop: 6 }}>Der Key kommt zur Laufzeit aus einem gebundenen Secret — nicht hier eintragen.</div>
+              </>
+            )}
+
+            {type === "mcp" && (
+              <>
+                <div className="fld"><label>Transport</label>
+                  <select value={mcpTransport} onChange={(e) => setMcpTransport(e.target.value)}>
+                    <option value="stdio">stdio (lokaler Server via Kommando)</option>
+                    <option value="http">HTTP (Streamable / Remote)</option>
+                  </select>
+                </div>
+                {mcpTransport === "stdio" ? (
+                  <>
+                    <div className="fld"><label>Kommando</label><input placeholder="z. B. npx" value={mcpCommand} onChange={(e) => setMcpCommand(e.target.value)} /></div>
+                    <div className="fld"><label>Argumente</label><input placeholder="-y @modelcontextprotocol/server-everything" value={mcpArgs} onChange={(e) => setMcpArgs(e.target.value)} /></div>
+                  </>
+                ) : (
+                  <div className="fld"><label>Server-URL</label><input placeholder="https://host/mcp" value={mcpUrl} onChange={(e) => setMcpUrl(e.target.value)} /></div>
+                )}
+                <div className="ct" style={{ marginTop: 12 }}>Brain (LLM, steuert die MCP-Tools) <span className="ln" /></div>
+                <div className="fld"><label>Brain Basis-URL</label><input placeholder="https://api.openai.com/v1 · http://localhost:11434/v1" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} /></div>
+                <div className="fld"><label>Brain Modell</label><input placeholder="gpt-4o-mini · llama3.1" value={model} onChange={(e) => setModel(e.target.value)} /></div>
+                <div className="fld"><label>API-Key aus Secret (ENV-Name)</label><input placeholder="OPENAI_API_KEY" value={apiKeyEnv} onChange={(e) => setApiKeyEnv(e.target.value)} /></div>
+                <div className="sub" style={{ marginTop: 6 }}>Der Verbindungstest listet die Tools des Servers — auch ohne Brain. Für echte Läufe braucht es das Brain-Modell.</div>
               </>
             )}
 
