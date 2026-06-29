@@ -1,9 +1,12 @@
 const BASE = (import.meta as any).env?.VITE_API_URL ?? "http://localhost:3100/api";
 
 async function j<T = any>(path: string, opts?: RequestInit): Promise<T> {
+  // content-type nur bei vorhandenem Body setzen — sonst lehnt Fastify leere JSON-Bodies ab.
+  const headers: Record<string, string> = {};
+  if (opts?.body != null) headers["content-type"] = "application/json";
   const res = await fetch(BASE + path, {
-    headers: { "content-type": "application/json" },
     ...opts,
+    headers: { ...headers, ...((opts?.headers as Record<string, string>) ?? {}) },
   });
   if (!res.ok) throw new Error((await res.text().catch(() => res.statusText)) || res.statusText);
   return res.status === 204 ? (null as T) : ((await res.json()) as T);
