@@ -30,7 +30,7 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER:-agency}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-agency_os}
       API_PORT: "3100"
       NODE_ENV: production
-      AUTH_MODE: strict
+      AUTH_MODE: ${AUTH_MODE:-strict}
       AUTH_SESSION_SECRET: ${AUTH_SESSION_SECRET:?bitte setzen}
       SECRETS_MASTER_KEY: ${SECRETS_MASTER_KEY:?bitte setzen}
       COOKIE_SECURE: "true"
