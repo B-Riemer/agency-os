@@ -42,6 +42,10 @@ services:
         condition: service_healthy
     expose:
       - "3100"
+    # Der api-Container erreicht die öffentliche Auth-Domain über das Host-Gateway
+    # (umgeht Container-DNS/NAT-Hairpin, damit OIDC-Discovery/Token/JWKS klappen).
+    extra_hosts:
+      - "auth.b-riemer.dev:host-gateway"
 
   web:
     build:
