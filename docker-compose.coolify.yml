@@ -1,0 +1,59 @@
+# AIgency OS für Coolify — Traefik (coolify-proxy) macht Routing + HTTPS.
+# KEINE host-ports, KEIN eigener Proxy. In Coolify die Domain auf den Dienst "web" (Port 80) setzen.
+# web liefert die SPA UND leitet /api intern an "api" weiter (Single-Origin).
+# Env-Variablen werden in der Coolify-UI gesetzt (siehe Anleitung / docs/deploy-coolify.md).
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-agency}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in Coolify}
+      POSTGRES_DB: ${POSTGRES_DB:-agency_os}
+    volumes:
+      - agency_os_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-agency} -d ${POSTGRES_DB:-agency_os}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-agency}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-agency_os}
+      API_PORT: "3100"
+      NODE_ENV: production
+      AUTH_MODE: ${AUTH_MODE:-local}
+      AUTH_SESSION_SECRET: ${AUTH_SESSION_SECRET:?set in Coolify}
+      SECRETS_MASTER_KEY: ${SECRETS_MASTER_KEY:?set in Coolify}
+      COOKIE_SECURE: "true"
+      WEB_URL: ${WEB_URL:-https://aigency.b-riemer.dev}
+      OIDC_ISSUER: ${OIDC_ISSUER:-}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-}
+      OIDC_REDIRECT_URI: ${OIDC_REDIRECT_URI:-}
+      OIDC_DEFAULT_ROLE: ${OIDC_DEFAULT_ROLE:-member}
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "3100"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_URL: /api
+    restart: unless-stopped
+    depends_on:
+      - api
+    expose:
+      - "80"
+
+volumes:
+  agency_os_pgdata:
