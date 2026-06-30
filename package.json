@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "description": "Steuerungs- und Personalwirtschafts-System für eine KI-Agentur (Best-of Langdock + Paperclip, Bring-your-own-Agent).",
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
   "packageManager": "pnpm@9.15.0",
   "engines": {
     "node": ">=20"
@@ -13,7 +13,11 @@
     "db:migrate": "pnpm --filter @agency-os/db db:migrate",
     "dev:db": "docker compose up -d",
     "dev:api": "pnpm --filter @agency-os/api start:dev",
-    "dev:web": "pnpm --filter @agency-os/web dev"
+    "dev:web": "pnpm --filter @agency-os/web dev",
+    "typecheck:web": "tsc -p apps/web/tsconfig.json --noEmit",
+    "typecheck:adapters": "tsc -p packages/adapter-contract/tsconfig.json --noEmit",
+    "typecheck": "pnpm typecheck:web && pnpm typecheck:adapters",
+    "test": "pnpm --filter @agency-os/api test"
   },
   "devDependencies": {
     "typescript": "^5.7.2"

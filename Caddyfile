@@ -1,0 +1,15 @@
+# Reverse-Proxy mit automatischem HTTPS (Let's Encrypt).
+# Single-Origin: Web unter / , API unter /api → keine CORS-/Cookie-Probleme.
+{$DOMAIN} {
+	encode zstd gzip
+
+	# /api/* → API (NestJS hat selbst das globale Prefix /api, daher Pfad NICHT strippen)
+	handle /api/* {
+		reverse_proxy api:3100
+	}
+
+	# Alles andere → Web (SPA)
+	handle {
+		reverse_proxy web:80
+	}
+}

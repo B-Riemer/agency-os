@@ -1,0 +1,80 @@
+# Produktion: db + api + web hinter Caddy (auto-HTTPS, Single-Origin).
+# Env aus .env.prod (siehe .env.prod.example). Start:
+#   DOMAIN gesetzt? → cp .env.prod.example .env.prod && nano .env.prod
+#   docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
+#   docker compose --env-file .env.prod -f docker-compose.prod.yml run --rm api pnpm --filter @agency-os/db db:migrate
+#   docker compose --env-file .env.prod -f docker-compose.prod.yml run --rm api pnpm --filter @agency-os/api seed
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-agency}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?bitte setzen}
+      POSTGRES_DB: ${POSTGRES_DB:-agency_os}
+    volumes:
+      - agency_os_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-agency} -d ${POSTGRES_DB:-agency_os}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # kein Port nach außen — nur intern erreichbar
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-agency}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-agency_os}
+      API_PORT: "3100"
+      NODE_ENV: production
+      AUTH_MODE: strict
+      AUTH_SESSION_SECRET: ${AUTH_SESSION_SECRET:?bitte setzen}
+      SECRETS_MASTER_KEY: ${SECRETS_MASTER_KEY:?bitte setzen}
+      COOKIE_SECURE: "true"
+      WEB_URL: https://${DOMAIN}
+      OIDC_ISSUER: ${OIDC_ISSUER:-}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-}
+      OIDC_REDIRECT_URI: ${OIDC_REDIRECT_URI:-https://${DOMAIN}/api/auth/callback}
+      OIDC_DEFAULT_ROLE: ${OIDC_DEFAULT_ROLE:-member}
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "3100"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_URL: /api   # Single-Origin: relativer Pfad → gleiche Domain wie die App
+    restart: unless-stopped
+    depends_on:
+      - api
+    expose:
+      - "80"
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:?bitte Domain setzen}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+      - api
+
+volumes:
+  agency_os_pgdata:
+  caddy_data:
+  caddy_config:
