@@ -37,15 +37,19 @@ services:
       OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-}
       OIDC_REDIRECT_URI: ${OIDC_REDIRECT_URI:-}
       OIDC_DEFAULT_ROLE: ${OIDC_DEFAULT_ROLE:-member}
+      # Interner Origin des IdP (z. B. http://authentik-server-xxxx:9000) — server-seitige
+      # OIDC-Calls (Discovery/Token/JWKS) laufen darüber direkt im Docker-Netz zum IdP,
+      # ohne Traefik/Host. Browser-Login bleibt über OIDC_ISSUER (öffentlich).
+      OIDC_INTERNAL_ORIGIN: ${OIDC_INTERNAL_ORIGIN:-}
     depends_on:
       db:
         condition: service_healthy
     expose:
       - "3100"
-    # Der api-Container erreicht die öffentliche Auth-Domain über das Host-Gateway
-    # (umgeht Container-DNS/NAT-Hairpin, damit OIDC-Discovery/Token/JWKS klappen).
-    extra_hosts:
-      - "auth.b-riemer.dev:host-gateway"
+    # api ins Authentik-Docker-Netz hängen, damit es den IdP-Container intern erreicht.
+    networks:
+      - default
+      - authentik
 
   web:
     build:
@@ -58,6 +62,12 @@ services:
       - api
     expose:
       - "80"
+
+networks:
+  # Vorhandenes Docker-Netz der Authentik-Coolify-Ressource (extern, wird NICHT angelegt).
+  authentik:
+    name: l8sww8gwocc0kkcck40kgk0w
+    external: true
 
 volumes:
   agency_os_pgdata:

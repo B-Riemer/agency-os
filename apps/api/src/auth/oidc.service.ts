@@ -51,6 +51,36 @@ export class OidcService {
     return process.env.WEB_URL ?? "http://localhost:5173";
   }
 
+  /**
+   * Leitet server-seitige OIDC-Calls (Discovery/Token/JWKS) intern zum IdP, wenn
+   * OIDC_INTERNAL_ORIGIN gesetzt ist (z. B. http://authentik-server-xxxx:9000).
+   * Der Browser-Redirect (authorization_endpoint) bleibt öffentlich; iss/aud werden
+   * weiterhin gegen den öffentlichen Issuer geprüft.
+   */
+  private internalize(url: string): string {
+    const internal = process.env.OIDC_INTERNAL_ORIGIN;
+    if (!internal || !process.env.OIDC_ISSUER) return url;
+    try {
+      const pub = new URL(process.env.OIDC_ISSUER).origin;
+      return url.startsWith(pub) ? internal.replace(/\/+$/, "") + url.slice(pub.length) : url;
+    } catch {
+      return url;
+    }
+  }
+
+  /** Umkehrung von internalize: zwingt eine URL auf den öffentlichen Origin (für den Browser-Redirect). */
+  private publicize(url: string): string {
+    const internal = process.env.OIDC_INTERNAL_ORIGIN;
+    if (!internal || !process.env.OIDC_ISSUER) return url;
+    try {
+      const pub = new URL(process.env.OIDC_ISSUER).origin;
+      const intO = internal.replace(/\/+$/, "");
+      return url.startsWith(intO) ? pub + url.slice(intO.length) : url;
+    } catch {
+      return url;
+    }
+  }
+
   // --- Session (eigene Tokens) -------------------------------------------
   issueSession(userId: string): string {
     return signSession({ uid: userId }, this.sessionSecret());
@@ -77,7 +107,7 @@ export class OidcService {
     if (this.discoveryCache) return this.discoveryCache;
     const base = process.env.OIDC_ISSUER!.replace(/\/+$/, "");
     const url = `${base}/.well-known/openid-configuration`;
-    const res = await fetch(url);
+    const res = await fetch(this.internalize(url));
     if (!res.ok) throw new Error(`OIDC-Discovery fehlgeschlagen (${res.status}) bei ${url}`);
     const d = (await res.json()) as Discovery;
     this.discoveryCache = d;
@@ -87,7 +117,7 @@ export class OidcService {
   private async jwks(): Promise<Jwks> {
     if (this.jwksCache && Date.now() - this.jwksCache.at < 10 * 60_000) return this.jwksCache.jwks;
     const d = await this.discovery();
-    const res = await fetch(d.jwks_uri);
+    const res = await fetch(this.internalize(d.jwks_uri));
     if (!res.ok) throw new Error(`JWKS-Abruf fehlgeschlagen (${res.status})`);
     const jwks = (await res.json()) as Jwks;
     this.jwksCache = { at: Date.now(), jwks };
@@ -112,7 +142,7 @@ export class OidcService {
       code_challenge: challenge,
       code_challenge_method: "S256",
     });
-    return `${d.authorization_endpoint}?${params.toString()}`;
+    return `${this.publicize(d.authorization_endpoint)}?${params.toString()}`;
   }
 
   private gcPending(): void {
@@ -137,7 +167,7 @@ export class OidcService {
     });
     if (process.env.OIDC_CLIENT_SECRET) form.set("client_secret", process.env.OIDC_CLIENT_SECRET);
 
-    const tokenRes = await fetch(d.token_endpoint, {
+    const tokenRes = await fetch(this.internalize(d.token_endpoint), {
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded", accept: "application/json" },
       body: form.toString(),
@@ -150,7 +180,9 @@ export class OidcService {
     const claims = verifyRs256(tokenJson.id_token, await this.jwks());
     if (!claims) throw new Error("ID-Token-Signatur ungültig (nur RS256 unterstützt)");
     // Claims prüfen: Issuer, Audience, Ablauf, Nonce.
-    if (claims.iss !== d.issuer) throw new Error("Issuer-Mismatch");
+    // Issuer-Mismatch tolerant: je nach Authentik-„Issuer mode" kann iss intern ODER öffentlich sein.
+    const allowedIss = new Set([d.issuer, this.publicize(d.issuer), this.internalize(d.issuer)]);
+    if (!claims.iss || !allowedIss.has(claims.iss)) throw new Error("Issuer-Mismatch");
     const aud = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
     if (!aud.includes(process.env.OIDC_CLIENT_ID)) throw new Error("Audience-Mismatch");
     if (claims.exp && claims.exp < Math.floor(Date.now() / 1000)) throw new Error("ID-Token abgelaufen");
