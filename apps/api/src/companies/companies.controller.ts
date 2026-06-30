@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Inject, Param, Patch, Post } from "@nestjs/common";
 import { CompaniesService } from "./companies.service.js";
+import { RequirePermission } from "../access/permissions.decorator.js";
 
 @Controller("companies")
 export class CompaniesController {
@@ -13,6 +14,12 @@ export class CompaniesController {
   @Get(":id")
   get(@Param("id") id: string) {
     return this.companies.get(id);
+  }
+
+  @Get(":id/export")
+  @RequirePermission("company", "manage")
+  export(@Param("id") id: string) {
+    return this.companies.export(id);
   }
 
   @Patch(":id")

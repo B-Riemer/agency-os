@@ -7,8 +7,9 @@ import { GovernanceView } from "./views/GovernanceView";
 import { SkillsView } from "./views/SkillsView";
 import { OrchestrationView } from "./views/OrchestrationView";
 import { OnboardWizard } from "./views/OnboardWizard";
+import { SettingsView } from "./views/SettingsView";
 
-type View = "org" | "people" | "skills" | "orch" | "gov" | "akte" | "onboard";
+type View = "org" | "people" | "skills" | "orch" | "gov" | "akte" | "onboard" | "settings";
 
 export function App() {
   const [company, setCompany] = useState<Company | null>(null);
@@ -99,7 +100,7 @@ export function App() {
         {navItem("orch", "◆", "Orchestrierung")}
         {navItem("gov", "⚖", "Governance")}
         <div className="spacer" />
-        <div className="nav"><span className="ic">⚙</span> Einstellungen</div>
+        {navItem("settings", "⚙", "Einstellungen")}
       </aside>
       <div className="main">
         <div className="top">
@@ -136,6 +137,14 @@ export function App() {
           {company && view === "skills" && <SkillsView companyId={company.id} />}
           {company && view === "orch" && <OrchestrationView companyId={company.id} />}
           {company && view === "gov" && <GovernanceView companyId={company.id} />}
+          {company && view === "settings" && (
+            <SettingsView
+              companyId={company.id}
+              companyName={company.name}
+              companySlug={company.slug}
+              onChanged={reloadOrg}
+            />
+          )}
           {company && view === "akte" && selected && (
             <AkteView companyId={company.id} agent={selected} audit={audit} onBack={() => setView("people")} onChanged={() => refresh()} />
           )}

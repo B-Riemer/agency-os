@@ -35,6 +35,7 @@ export type Company = { id: string; name: string; slug: string };
 export type Department = { id: string; name: string; key: string };
 
 export type Me = { id: string; email: string; roleKeys: string[] } | null;
+export type UserRow = { id: string; email: string; displayName: string | null; roleKeys: string[] };
 
 export const api = {
   base: BASE,
@@ -53,6 +54,23 @@ export const api = {
     j(`/companies/${c}/departments/${depId}`, { method: "DELETE" }),
   renameCompany: (c: string, name: string) =>
     j<Company>(`/companies/${c}`, { method: "PATCH", body: JSON.stringify({ name }) }),
+  // Settings — Portabilität, Nutzer/Rollen, System
+  exportCompany: (c: string) => j<any>(`/companies/${c}/export`),
+  importCompany: (manifest: any, replaceAgents?: boolean) =>
+    j<{ companyId: string; company: string; departments: number; agents: number; replaced: boolean }>(
+      "/companies/import",
+      { method: "POST", body: JSON.stringify({ manifest, replaceAgents }) },
+    ),
+  users: () => j<UserRow[]>("/users"),
+  companyRoles: (c: string) => j<{ id: string; key: string; name: string }[]>(`/companies/${c}/roles`),
+  grantRole: (userId: string, roleKey: string) =>
+    j(`/users/${userId}/roles`, { method: "POST", body: JSON.stringify({ roleKey }) }),
+  revokeRole: (userId: string, roleKey: string) =>
+    j(`/users/${userId}/roles/${roleKey}`, { method: "DELETE" }),
+  systemInfo: () =>
+    j<{ version: string; authMode: string; schedulerEnabled: boolean; oidcEnabled: boolean; oidcIssuer: string | null; cookieSecure: boolean }>(
+      "/system/info",
+    ),
   agents: (c: string) => j<Agent[]>(`/companies/${c}/agents`),
   agent: (c: string, id: string) => j<Agent>(`/companies/${c}/agents/${id}`),
   createAgent: (c: string, body: Record<string, unknown>) =>

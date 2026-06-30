@@ -81,8 +81,9 @@ Don't recreate dozens of agents by hand. Describe your company, departments and 
 JSON manifest and import it in one shot — the product-side of "bring your own agents":
 
 ```bash
-# server-side (direct DB, idempotent; --replace swaps a company's agents/departments only)
-pnpm --filter @agency-os/api import examples/aigency.import.json --replace
+# server-side (direct DB, idempotent; --replace swaps a company's agents/departments only).
+# NB: invoke via `exec tsx` — pnpm has a built-in `import` command that would shadow the script.
+pnpm --filter @agency-os/api exec tsx src/import-cli.ts examples/aigency.import.json --replace
 ```
 
 Or via API (board/admin): `POST /api/companies/import` with `{ "manifest": { … }, "replaceAgents": true }`.

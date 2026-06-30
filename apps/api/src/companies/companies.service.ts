@@ -1,12 +1,39 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { eq } from "drizzle-orm";
-import { type Db, companies, departments } from "@agency-os/db";
+import { type Db, companies, departments, agents } from "@agency-os/db";
 import { DRIZZLE } from "../database/drizzle.constants.js";
 
 // Säule 1 — Firmenstruktur.
 @Injectable()
 export class CompaniesService {
   constructor(@Inject(DRIZZLE) private readonly db: Db) {}
+
+  /** Säule 8 — Portabilität: ganze Company als Import-Manifest exportieren. */
+  async export(companyId: string) {
+    const c = await this.get(companyId);
+    const deps = await this.db.select().from(departments).where(eq(departments.companyId, companyId));
+    const ags = await this.db.select().from(agents).where(eq(agents.companyId, companyId));
+    const depKeyById = new Map(deps.map((d) => [d.id, d.key]));
+    const nameById = new Map(ags.map((a) => [a.id, a.displayName]));
+    return {
+      company: { name: c.name, slug: c.slug },
+      departments: deps.map((d) => ({ key: d.key, name: d.name, description: d.description ?? undefined })),
+      agents: ags.map((a) => ({
+        displayName: a.displayName,
+        role: a.role ?? undefined,
+        department: a.departmentId ? depKeyById.get(a.departmentId) : undefined,
+        manager: a.managerId ? nameById.get(a.managerId) : undefined,
+        kind: a.kind,
+        adapterType: a.adapterType,
+        adapterConfig: a.adapterConfig ?? undefined,
+        systemPrompt: a.systemPrompt ?? undefined,
+        modelConfig: a.modelConfig ?? undefined,
+        status: a.status,
+        budgetMonthlyCents: a.budgetMonthlyCents ?? undefined,
+        sovereignty: a.sovereignty ?? undefined,
+      })),
+    };
+  }
 
   list() {
     return this.db.select().from(companies);
