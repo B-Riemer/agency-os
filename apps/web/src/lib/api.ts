@@ -71,6 +71,11 @@ export const api = {
   agentKnowledge: (id: string) => j<any[]>(`/agents/${id}/knowledge`),
   setKnowledge: (id: string, folderId: string, enabled: boolean) =>
     j(`/agents/${id}/knowledge/${folderId}`, { method: "PATCH", body: JSON.stringify({ enabled }) }),
+  agentSecrets: (id: string) => j<{ envKey: string; secretId: string; name: string }[]>(`/agents/${id}/secrets`),
+  createSecret: (c: string, name: string, value: string) =>
+    j<{ id: string; name: string }>(`/companies/${c}/secrets`, { method: "POST", body: JSON.stringify({ name, value }) }),
+  bindSecret: (secretId: string, agentId: string, envKey: string) =>
+    j(`/secrets/${secretId}/bind`, { method: "POST", body: JSON.stringify({ agentId, envKey }) }),
   test: (id: string) => j(`/agents/${id}/test`, { method: "POST" }),
   run: (id: string, task: string) =>
     j(`/agents/${id}/run`, { method: "POST", body: JSON.stringify({ task }) }),

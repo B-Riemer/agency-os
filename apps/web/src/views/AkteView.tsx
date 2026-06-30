@@ -27,12 +27,42 @@ export function AkteView({
   const [toggles, setToggles] = useState<any[]>([]);
   const [tab, setTab] = useState("IDENTITY");
   const [tokenMsg, setTokenMsg] = useState("");
+  const [secretsList, setSecretsList] = useState<{ envKey: string; secretId: string; name: string }[]>([]);
+  const [secName, setSecName] = useState("");
+  const [secEnv, setSecEnv] = useState("");
+  const [secValue, setSecValue] = useState("");
+  const [secBusy, setSecBusy] = useState(false);
+  const [secMsg, setSecMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   async function reload() {
     setVersions(await api.versions(companyId, agent.id).catch(() => []));
     setFolders(await api.agentKnowledge(agent.id).catch(() => []));
     setSkills(await api.agentSkills(agent.id).catch(() => []));
     setToggles(await api.agentToggles(agent.id).catch(() => []));
+    setSecretsList(await api.agentSecrets(agent.id).catch(() => []));
+  }
+
+  async function addSecret() {
+    if (!secName.trim() || !secEnv.trim() || !secValue) {
+      setSecMsg({ ok: false, text: "Name, ENV-Variable und Wert sind nötig." });
+      return;
+    }
+    setSecBusy(true);
+    setSecMsg(null);
+    try {
+      const s = await api.createSecret(companyId, secName.trim(), secValue);
+      await api.bindSecret(s.id, agent.id, secEnv.trim());
+      setSecMsg({ ok: true, text: `„${secName.trim()}" als ${secEnv.trim()} gebunden.` });
+      setSecName("");
+      setSecEnv("");
+      setSecValue("");
+      setSecretsList(await api.agentSecrets(agent.id));
+      onChanged();
+    } catch (e: any) {
+      setSecMsg({ ok: false, text: e.message });
+    } finally {
+      setSecBusy(false);
+    }
   }
   useEffect(() => {
     reload();
@@ -271,6 +301,24 @@ export function AkteView({
               </div>
             ))}
             <div className="rl" style={{ marginTop: 8 }}>Der Agent sieht zur Laufzeit nur AN-geschaltete Ordner.</div>
+          </div>
+
+          <div className="card2" style={{ marginTop: 14 }}>
+            <div className="ct">Secrets &amp; Zugänge (AES-256-GCM) <span className="ln" /></div>
+            {secretsList.length === 0 && <div className="rl">Keine Secrets gebunden.</div>}
+            {secretsList.map((s) => (
+              <div className="acc" key={s.envKey}>
+                <span>{s.name} <span className="etime">· ENV {s.envKey}</span></span>
+                <span className="bd bd-auto">gebunden</span>
+              </div>
+            ))}
+            <div className="subh" style={{ marginTop: 12 }}>Neues Secret binden</div>
+            <div className="fld"><label>Name</label><input placeholder="z. B. Anthropic API Key" value={secName} onChange={(e) => setSecName(e.target.value)} /></div>
+            <div className="fld"><label>ENV-Variable</label><input placeholder="z. B. ANTHROPIC_API_KEY" value={secEnv} onChange={(e) => setSecEnv(e.target.value)} /></div>
+            <div className="fld"><label>Wert</label><input type="password" placeholder="wird verschlüsselt gespeichert" value={secValue} onChange={(e) => setSecValue(e.target.value)} /></div>
+            <button className="btn" disabled={secBusy} onClick={addSecret}>{secBusy ? "Binde …" : "Secret binden"}</button>
+            {secMsg && <div className={"result " + (secMsg.ok ? "ok" : "err")}>{secMsg.text}</div>}
+            <div className="rl" style={{ marginTop: 8 }}>Wird AES-256-GCM verschlüsselt gespeichert und dem Agenten zur Laufzeit als ENV injiziert — nie im Klartext sichtbar, nie im Prompt.</div>
           </div>
         </div>
 
