@@ -38,6 +38,9 @@ export function OnboardWizard({
   const [mcpCommand, setMcpCommand] = useState("npx");
   const [mcpArgs, setMcpArgs] = useState("-y @modelcontextprotocol/server-everything");
   const [mcpUrl, setMcpUrl] = useState("http://localhost:3000/mcp");
+  // Claude (Anthropic)
+  const [claudeModel, setClaudeModel] = useState("claude-sonnet-4-6");
+  const [claudeKeyEnv, setClaudeKeyEnv] = useState("ANTHROPIC_API_KEY");
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
   const [deptId, setDeptId] = useState<string>(departments[0]?.id ?? "");
@@ -59,10 +62,11 @@ export function OnboardWizard({
           : { transport: "stdio", command: mcpCommand, args: mcpArgs.trim() ? mcpArgs.trim().split(/\s+/) : [] };
       return { ...base, brain: { baseUrl, model, apiKeyEnv } };
     }
+    if (type === "claude_local") return { model: claudeModel, apiKeyEnv: claudeKeyEnv, maxTokens: 1024 };
     return {};
   }
   // Welche Typen haben einen funktionierenden Adapter (Verbindungstest + Lauf)?
-  const RUNNABLE = ["http", "process", "openai", "mcp"];
+  const RUNNABLE = ["http", "process", "openai", "mcp", "claude_local"];
 
   async function testConnection() {
     setTestRes(null);
@@ -198,6 +202,14 @@ export function OnboardWizard({
                 <div className="fld"><label>Brain Modell</label><input placeholder="gpt-4o-mini · llama3.1" value={model} onChange={(e) => setModel(e.target.value)} /></div>
                 <div className="fld"><label>API-Key aus Secret (ENV-Name)</label><input placeholder="OPENAI_API_KEY" value={apiKeyEnv} onChange={(e) => setApiKeyEnv(e.target.value)} /></div>
                 <div className="sub" style={{ marginTop: 6 }}>Der Verbindungstest listet die Tools des Servers — auch ohne Brain. Für echte Läufe braucht es das Brain-Modell.</div>
+              </>
+            )}
+
+            {type === "claude_local" && (
+              <>
+                <div className="fld"><label>Claude-Modell</label><input placeholder="claude-sonnet-4-6 · claude-opus-4-8 · claude-haiku-4-5" value={claudeModel} onChange={(e) => setClaudeModel(e.target.value)} /></div>
+                <div className="fld"><label>API-Key aus Secret (ENV-Name)</label><input placeholder="ANTHROPIC_API_KEY" value={claudeKeyEnv} onChange={(e) => setClaudeKeyEnv(e.target.value)} /></div>
+                <div className="sub" style={{ marginTop: 6 }}>Der Anthropic-Key kommt zur Laufzeit aus einem gebundenen Secret — nicht hier eintragen.</div>
               </>
             )}
 
