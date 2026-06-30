@@ -75,6 +75,21 @@ pnpm --filter @agency-os/web dev                        # UI   → http://localh
 Bring your own agent: run any HTTP agent that answers `POST /wake` with
 `{"status":"completed","result":"…"}`, then add it via **+ Agent einstellen** (adapter `http`).
 
+### Bring your *whole* org — manifest import
+
+Don't recreate dozens of agents by hand. Describe your company, departments and agents in one
+JSON manifest and import it in one shot — the product-side of "bring your own agents":
+
+```bash
+# server-side (direct DB, idempotent; --replace swaps a company's agents/departments only)
+pnpm --filter @agency-os/api import examples/aigency.import.json --replace
+```
+
+Or via API (board/admin): `POST /api/companies/import` with `{ "manifest": { … }, "replaceAgents": true }`.
+See [`examples/aigency.import.json`](./examples/aigency.import.json) for the schema (company · departments ·
+agents with role, system prompt, model, adapter, reporting line). Re-running is safe: companies match by
+`slug`, departments by `key`, agents by `displayName`.
+
 ## Deploy (Docker, full stack)
 
 ```bash

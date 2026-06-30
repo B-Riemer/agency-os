@@ -13,6 +13,7 @@
     "windows": [
       {
         "title": "AIgency OS",
+        "url": "https://aigency.b-riemer.dev",
         "width": 1440,
         "height": 900,
         "minWidth": 1000,

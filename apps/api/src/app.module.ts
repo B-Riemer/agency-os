@@ -11,6 +11,7 @@ import { TasksModule } from "./tasks/tasks.module.js";
 import { RoutinesModule } from "./routines/routines.module.js";
 import { CompatModule } from "./compat/compat.module.js";
 import { SecretsModule } from "./secrets/secrets.module.js";
+import { ImportModule } from "./import/import.module.js";
 import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
 import { AuthGuard } from "./access/auth.guard.js";
 import { RbacGuard } from "./access/rbac.guard.js";
@@ -30,6 +31,7 @@ import { AuditInterceptor } from "./common/audit.interceptor.js";
     TasksModule,
     RoutinesModule,
     CompatModule,
+    ImportModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: AuthGuard }, // setzt req.user (dev-offen, AUTH_MODE=strict erzwingt)

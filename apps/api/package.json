@@ -9,6 +9,7 @@
     "start:prod": "tsx src/main.ts",
     "build": "tsc -p tsconfig.json",
     "seed": "tsx src/seed.ts",
+    "import": "tsx src/import-cli.ts",
     "diag": "tsx src/diag.ts",
     "test": "node --import tsx --test test/cron.test.ts test/jwt.test.ts"
   },
