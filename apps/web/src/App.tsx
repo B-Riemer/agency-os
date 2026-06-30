@@ -8,6 +8,7 @@ import { SkillsView } from "./views/SkillsView";
 import { OrchestrationView } from "./views/OrchestrationView";
 import { OnboardWizard } from "./views/OnboardWizard";
 import { SettingsView } from "./views/SettingsView";
+import { LoginGate } from "./views/LoginGate";
 
 type View = "org" | "people" | "skills" | "orch" | "gov" | "akte" | "onboard" | "settings";
 
@@ -20,6 +21,7 @@ export function App() {
   const [selId, setSelId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [auth, setAuth] = useState<{ enabled: boolean; email: string | null }>({ enabled: false, email: null });
+  const [needsLogin, setNeedsLogin] = useState(false);
 
   async function refresh(cid?: string) {
     const id = cid ?? company?.id;
@@ -51,6 +53,12 @@ export function App() {
     try {
       const cfg = await api.authConfig().catch(() => ({ enabled: false }));
       const me = await api.me().catch(() => null);
+      // Abgesichert + nicht angemeldet → Anmelde-Gate (SSO oder API-Key) zeigen.
+      if (cfg.enabled && !me) {
+        setNeedsLogin(true);
+        return;
+      }
+      setNeedsLogin(false);
       setAuth({ enabled: cfg.enabled, email: me && me.email !== "local@dev" ? me.email : null });
       const cs = await api.companies();
       if (!cs.length) {
@@ -83,6 +91,8 @@ export function App() {
       <span className="ic">{ic}</span> {label}
     </div>
   );
+
+  if (needsLogin) return <LoginGate />;
 
   return (
     <div className="app">

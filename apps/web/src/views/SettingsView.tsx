@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { api, type Me, type UserRow } from "../lib/api";
+import { api, getLocalKey, setLocalKey, clearLocalKey, type Me, type UserRow } from "../lib/api";
 
 const ROLE_KEYS = ["board", "admin", "member"] as const;
 
@@ -23,6 +23,9 @@ export function SettingsView({
   const [importReplace, setImportReplace] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [keyInfo, setKeyInfo] = useState<{ hasKey: boolean; hint: string | null } | null>(null);
+  const [newKey, setNewKey] = useState<string | null>(null);
+  const [onDevice, setOnDevice] = useState(!!getLocalKey());
 
   const isBoard = !authEnabled || (me?.roleKeys ?? []).some((r) => r === "board" || r === "admin");
 
@@ -42,7 +45,11 @@ export function SettingsView({
     ]);
     setAuthEnabled(cfg.enabled);
     setMe(who);
-    await Promise.all([loadUsers(), api.systemInfo().then(setSys).catch(() => setSys(null))]);
+    await Promise.all([
+      loadUsers(),
+      api.systemInfo().then(setSys).catch(() => setSys(null)),
+      api.apiKeyInfo().then(setKeyInfo).catch(() => setKeyInfo(null)),
+    ]);
   }
   useEffect(() => {
     load();
@@ -66,6 +73,42 @@ export function SettingsView({
     } finally {
       setBusy(false);
     }
+  }
+
+  async function generateKey() {
+    if (busy) return;
+    if (keyInfo?.hasKey && !window.confirm("Es existiert bereits ein API-Key. Neu erzeugen macht den alten ungültig. Fortfahren?")) return;
+    setBusy(true);
+    try {
+      const { apiKey } = await api.issueApiKey();
+      setNewKey(apiKey);
+      await api.apiKeyInfo().then(setKeyInfo).catch(() => {});
+      flash("Neuer API-Key erzeugt — jetzt kopieren, er wird nur einmal angezeigt.");
+    } catch (e: any) {
+      flash("Fehler: " + (e?.message ?? "unbekannt"));
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function revokeKey() {
+    if (!window.confirm("API-Key serverseitig zurückziehen? Geräte mit diesem Key verlieren den Zugang.")) return;
+    await api.revokeApiKey().catch(() => {});
+    clearLocalKey();
+    setOnDevice(false);
+    setNewKey(null);
+    await api.apiKeyInfo().then(setKeyInfo).catch(() => {});
+    flash("API-Key zurückgezogen.");
+  }
+  function saveOnDevice() {
+    if (!newKey) return;
+    setLocalKey(newKey);
+    setOnDevice(true);
+    flash("API-Key auf diesem Gerät gespeichert.");
+  }
+  function removeFromDevice() {
+    clearLocalKey();
+    setOnDevice(false);
+    flash("API-Key von diesem Gerät entfernt.");
   }
 
   async function renameCompany() {
@@ -133,6 +176,32 @@ export function SettingsView({
             ) : (
               <a className="btn" href={api.loginUrl()}>Login</a>
             ))}
+        </div>
+      </div>
+
+      {/* 1b) Geräte-Zugang (API-Key) */}
+      <div className="card2" style={{ marginTop: 18 }}>
+        <div className="ct">Geräte-Zugang (API-Key) <span className="ln" /></div>
+        <p className="rl" style={{ marginTop: 6 }}>
+          Für die <b>Desktop-App</b> (wo SSO-Cookies im Fenster blockiert sind) oder Automatisierung: Key erzeugen,
+          kopieren und im Anmelde-Fenster der Desktop-App einfügen.
+        </p>
+        <div className="kv"><span className="k">Status</span><span className="v">{keyInfo?.hasKey ? `aktiv (${keyInfo.hint})` : "kein Key"}</span></div>
+        <div className="kv"><span className="k">Auf diesem Gerät</span><span className="v">{onDevice ? "ja" : "nein"}</span></div>
+        {newKey && (
+          <div style={{ margin: "10px 0" }}>
+            <div className="rl" style={{ marginBottom: 4 }}>Neuer Key (nur jetzt sichtbar):</div>
+            <input readOnly value={newKey} onFocus={(e) => e.currentTarget.select()} style={{ width: "100%", fontFamily: "monospace", fontSize: 12 }} />
+            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+              <button className="mini-btn" onClick={() => navigator.clipboard?.writeText(newKey)}>Kopieren</button>
+              <button className="mini-btn" onClick={saveOnDevice}>Auf diesem Gerät speichern</button>
+            </div>
+          </div>
+        )}
+        <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+          <button className="btn" disabled={busy} onClick={generateKey}>{keyInfo?.hasKey ? "Neuen Key erzeugen" : "API-Key erzeugen"}</button>
+          {onDevice && <button className="mini-btn" onClick={removeFromDevice}>Von diesem Gerät entfernen</button>}
+          {keyInfo?.hasKey && <button className="mini-btn" onClick={revokeKey}>Key zurückziehen</button>}
         </div>
       </div>
 

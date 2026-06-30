@@ -1,9 +1,35 @@
 const BASE = (import.meta as any).env?.VITE_API_URL ?? "http://localhost:3100/api";
 
+// Geräte-Zugang per API-Key (z. B. Desktop-App, wo OIDC-Cookies im Webview blockiert sind).
+const API_KEY_STORE = "agos_api_key";
+export const getLocalKey = (): string | null => {
+  try {
+    return localStorage.getItem(API_KEY_STORE);
+  } catch {
+    return null;
+  }
+};
+export const setLocalKey = (k: string) => {
+  try {
+    localStorage.setItem(API_KEY_STORE, k.trim());
+  } catch {
+    /* ignore */
+  }
+};
+export const clearLocalKey = () => {
+  try {
+    localStorage.removeItem(API_KEY_STORE);
+  } catch {
+    /* ignore */
+  }
+};
+
 async function j<T = any>(path: string, opts?: RequestInit): Promise<T> {
   // content-type nur bei vorhandenem Body setzen — sonst lehnt Fastify leere JSON-Bodies ab.
   const headers: Record<string, string> = {};
   if (opts?.body != null) headers["content-type"] = "application/json";
+  const key = getLocalKey();
+  if (key) headers["x-api-key"] = key; // Geräte-Zugang ohne Cookie
   const res = await fetch(BASE + path, {
     credentials: "include", // Session-Cookie cross-origin mitsenden
     ...opts,
@@ -44,6 +70,10 @@ export const api = {
   me: () => j<Me>("/auth/me"),
   logout: () => j("/auth/logout", { method: "POST" }),
   loginUrl: () => BASE + "/auth/login",
+  // Geräte-Zugang (API-Key) des eingeloggten Users
+  apiKeyInfo: () => j<{ hasKey: boolean; hint: string | null }>("/auth/api-key"),
+  issueApiKey: () => j<{ apiKey: string }>("/auth/api-key", { method: "POST" }),
+  revokeApiKey: () => j("/auth/api-key", { method: "DELETE" }),
   companies: () => j<Company[]>("/companies"),
   departments: (c: string) => j<Department[]>(`/companies/${c}/departments`),
   createDepartment: (c: string, name: string, key?: string, description?: string) =>
