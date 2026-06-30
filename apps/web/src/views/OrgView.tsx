@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useRef, useState } from "react";
-import type { Agent, Department } from "../lib/api";
+import { api, type Agent, type Department } from "../lib/api";
 import { Avatar } from "../lib/ui";
 
 const EMBLEM = `
@@ -29,11 +29,50 @@ export function OrgView({
   agents,
   departments,
   onSelect,
+  companyId,
+  companyName,
+  onChanged,
 }: {
   agents: Agent[];
   departments: Department[];
   onSelect: (a: Agent) => void;
+  companyId: string;
+  companyName: string;
+  onChanged: () => void;
 }) {
+  const [newDept, setNewDept] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function addDept() {
+    const name = newDept.trim();
+    if (!name || busy) return;
+    setBusy(true);
+    try {
+      await api.createDepartment(companyId, name);
+      setNewDept("");
+      onChanged();
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function renameDept(d: Department) {
+    const name = window.prompt("Neuer Name der Abteilung:", d.name);
+    if (!name || name === d.name) return;
+    await api.updateDepartment(companyId, d.id, { name });
+    onChanged();
+  }
+  async function removeDept(d: Department) {
+    if (!window.confirm(`Abteilung „${d.name}" löschen? Zugewiesene Agenten bleiben erhalten.`)) return;
+    await api.deleteDepartment(companyId, d.id);
+    onChanged();
+  }
+  async function renameCompany() {
+    const name = window.prompt("Name der Company:", companyName);
+    if (!name || name === companyName) return;
+    await api.renameCompany(companyId, name);
+    onChanged();
+  }
+
   const wrapRef = useRef<HTMLDivElement>(null);
   const emblemRef = useRef<HTMLDivElement>(null);
   const deptRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -115,6 +154,34 @@ export function OrgView({
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="card2" style={{ marginTop: 18 }}>
+        <div className="ct">Abteilungen verwalten <span className="ln" /></div>
+        <div className="kv" style={{ marginBottom: 10 }}>
+          <span className="k">Company</span>
+          <span className="v">{companyName} <span className="mini-btn" style={{ marginLeft: 8 }} onClick={renameCompany}>umbenennen</span></span>
+        </div>
+        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+          <input
+            value={newDept}
+            placeholder="Neue Abteilung, z. B. LinkedIn"
+            onChange={(e) => setNewDept(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && addDept()}
+            style={{ flex: 1 }}
+          />
+          <button className="btn" disabled={busy} onClick={addDept}>+ Anlegen</button>
+        </div>
+        {departments.map((d) => (
+          <div className="acc" key={d.id}>
+            <span>{d.name} <span className="etime">· {d.key} · {agents.filter((a) => a.departmentId === d.id).length} Agenten</span></span>
+            <span style={{ display: "flex", gap: 10 }}>
+              <span className="mini-btn" onClick={() => renameDept(d)}>Umbenennen</span>
+              <span className="mini-btn" onClick={() => removeDept(d)}>Löschen</span>
+            </span>
+          </div>
+        ))}
+        <div className="rl" style={{ marginTop: 8 }}>Beim Löschen bleiben zugewiesene Agenten erhalten (dann „ohne Abteilung"). Agenten fügst du über „+ Agent einstellen" hinzu und ordnest sie der Abteilung zu.</div>
       </div>
     </div>
   );

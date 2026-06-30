@@ -45,6 +45,14 @@ export const api = {
   loginUrl: () => BASE + "/auth/login",
   companies: () => j<Company[]>("/companies"),
   departments: (c: string) => j<Department[]>(`/companies/${c}/departments`),
+  createDepartment: (c: string, name: string, key?: string, description?: string) =>
+    j<Department>(`/companies/${c}/departments`, { method: "POST", body: JSON.stringify({ name, key, description }) }),
+  updateDepartment: (c: string, depId: string, patch: { name?: string; key?: string; description?: string }) =>
+    j<Department>(`/companies/${c}/departments/${depId}`, { method: "PATCH", body: JSON.stringify(patch) }),
+  deleteDepartment: (c: string, depId: string) =>
+    j(`/companies/${c}/departments/${depId}`, { method: "DELETE" }),
+  renameCompany: (c: string, name: string) =>
+    j<Company>(`/companies/${c}`, { method: "PATCH", body: JSON.stringify({ name }) }),
   agents: (c: string) => j<Agent[]>(`/companies/${c}/agents`),
   agent: (c: string, id: string) => j<Agent>(`/companies/${c}/agents/${id}`),
   createAgent: (c: string, body: Record<string, unknown>) =>

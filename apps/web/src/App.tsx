@@ -28,6 +28,19 @@ export function App() {
     setAudit(au);
   }
 
+  // Org neu laden (Abteilungen + Agenten) + Company-Name aktualisieren.
+  async function reloadOrg() {
+    if (!company) return;
+    const [d, cs] = await Promise.all([
+      api.departments(company.id).catch(() => []),
+      api.companies().catch(() => []),
+    ]);
+    setDepartments(d);
+    const c = cs.find((x) => x.id === company.id);
+    if (c) setCompany(c);
+    await refresh(company.id);
+  }
+
   async function logout() {
     await api.logout().catch(() => {});
     window.location.reload();
@@ -109,7 +122,16 @@ export function App() {
         </div>
         <div className="stage">
           {err && <div className="banner warn">{err}</div>}
-          {company && view === "org" && <OrgView agents={agents} departments={departments} onSelect={openAkte} />}
+          {company && view === "org" && (
+            <OrgView
+              agents={agents}
+              departments={departments}
+              onSelect={openAkte}
+              companyId={company.id}
+              companyName={company.name}
+              onChanged={reloadOrg}
+            />
+          )}
           {company && view === "people" && <PeopleView agents={agents} onSelect={openAkte} />}
           {company && view === "skills" && <SkillsView companyId={company.id} />}
           {company && view === "orch" && <OrchestrationView companyId={company.id} />}
