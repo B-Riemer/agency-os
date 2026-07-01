@@ -9,8 +9,9 @@ import { OrchestrationView } from "./views/OrchestrationView";
 import { OnboardWizard } from "./views/OnboardWizard";
 import { SettingsView } from "./views/SettingsView";
 import { LoginGate } from "./views/LoginGate";
+import { ChatView } from "./views/ChatView";
 
-type View = "org" | "people" | "skills" | "orch" | "gov" | "akte" | "onboard" | "settings";
+type View = "org" | "people" | "skills" | "orch" | "gov" | "akte" | "onboard" | "settings" | "chat";
 
 export function App() {
   const [company, setCompany] = useState<Company | null>(null);
@@ -104,6 +105,7 @@ export function App() {
             <small>Command Center</small>
           </div>
         </div>
+        {navItem("chat", "✎", "Auftrag")}
         {navItem("org", "▣", "Org")}
         {navItem("people", "◷", "People")}
         {navItem("skills", "✦", "Skills")}
@@ -143,6 +145,7 @@ export function App() {
               onChanged={reloadOrg}
             />
           )}
+          {company && view === "chat" && <ChatView agents={agents} />}
           {company && view === "people" && <PeopleView agents={agents} onSelect={openAkte} />}
           {company && view === "skills" && <SkillsView companyId={company.id} />}
           {company && view === "orch" && <OrchestrationView companyId={company.id} />}

@@ -46,6 +46,14 @@ export class AgentsController {
     return this.agents.promote(id, vid);
   }
 
+  @Patch(":id/runtime")
+  setRuntime(
+    @Param("id") id: string,
+    @Body() dto: { adapterType?: string; adapterConfig?: Record<string, unknown> },
+  ) {
+    return this.agents.setRuntime(id, dto);
+  }
+
   @Patch(":id/sovereignty")
   sovereignty(@Param("id") id: string, @Body("level") level: "eu_only" | "eu_plus" | "global" | "global_pii") {
     return this.agents.setSovereignty(id, level);

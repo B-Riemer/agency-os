@@ -107,6 +107,8 @@ export const api = {
     j<Agent>(`/companies/${c}/agents`, { method: "POST", body: JSON.stringify(body) }),
   setStatus: (c: string, id: string, status: Agent["status"]) =>
     j<Agent>(`/companies/${c}/agents/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  setRuntime: (c: string, id: string, dto: { adapterType?: string; adapterConfig?: Record<string, unknown> }) =>
+    j<Agent>(`/companies/${c}/agents/${id}/runtime`, { method: "PATCH", body: JSON.stringify(dto) }),
   setSovereignty: (c: string, id: string, level: string) =>
     j<Agent>(`/companies/${c}/agents/${id}/sovereignty`, { method: "PATCH", body: JSON.stringify({ level }) }),
   setBudgetFallback: (c: string, id: string, enabled: boolean) =>

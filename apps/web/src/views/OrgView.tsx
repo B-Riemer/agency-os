@@ -142,9 +142,9 @@ export function OrgView({
       <div className="ceorow" style={{ cursor: ceo ? "pointer" : "default" }} onClick={() => ceo && onSelect(ceo)}>
         <div className="emblem-wrap" ref={emblemRef} dangerouslySetInnerHTML={{ __html: EMBLEM }} />
         <div className="ceolab">
-          <div className="role">CEO: {ceo?.displayName ?? "—"}</div>
+          <div className="role">CEO</div>
           <div className="nm">{ceo?.displayName ?? "—"}</div>
-          <div className="desc">{ceo?.systemPrompt ?? ceo?.role ?? "Chief Executive Agent"}</div>
+          <div className="desc">{ceo?.role ?? "Chief Executive Agent"}</div>
         </div>
       </div>
       <div className="depts">

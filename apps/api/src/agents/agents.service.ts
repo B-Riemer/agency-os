@@ -52,6 +52,16 @@ export class AgentsService {
     return a;
   }
 
+  /** Runtime/Adapter einer bestehenden Akte setzen (z. B. auf claude_local umstellen). */
+  async setRuntime(id: string, dto: { adapterType?: string; adapterConfig?: Record<string, unknown> }) {
+    const set: Record<string, unknown> = { updatedAt: new Date() };
+    if (dto.adapterType !== undefined) set.adapterType = dto.adapterType;
+    if (dto.adapterConfig !== undefined) set.adapterConfig = dto.adapterConfig;
+    const [a] = await this.db.update(agents).set(set).where(eq(agents.id, id)).returning();
+    if (!a) throw new NotFoundException("Agent nicht gefunden");
+    return a;
+  }
+
   // --- Versionierte Akte (Promote/Rollback) ---
   listVersions(agentId: string) {
     return this.db

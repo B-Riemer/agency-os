@@ -33,6 +33,26 @@ export function AkteView({
   const [secValue, setSecValue] = useState("");
   const [secBusy, setSecBusy] = useState(false);
   const [secMsg, setSecMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [rtType, setRtType] = useState(agent.adapterType);
+  const [rtConfig, setRtConfig] = useState(JSON.stringify(agent.adapterConfig ?? {}, null, 2));
+  const [rtMsg, setRtMsg] = useState<string | null>(null);
+
+  async function saveRuntime() {
+    let cfg: Record<string, unknown> = {};
+    try {
+      cfg = rtConfig.trim() ? JSON.parse(rtConfig) : {};
+    } catch {
+      setRtMsg("Konfiguration ist kein gültiges JSON.");
+      return;
+    }
+    try {
+      await api.setRuntime(companyId, agent.id, { adapterType: rtType, adapterConfig: cfg });
+      setRtMsg("Runtime gespeichert. Für claude_local: Status auf 'aktiv' setzen + Secret ANTHROPIC_API_KEY binden.");
+      onChanged();
+    } catch (e: any) {
+      setRtMsg("Fehler: " + (e?.message ?? "unbekannt"));
+    }
+  }
 
   async function reload() {
     setVersions(await api.versions(companyId, agent.id).catch(() => []));
@@ -263,6 +283,31 @@ export function AkteView({
               {ext && <button className="btn" style={{ marginTop: 10, width: "100%" }} onClick={rotate}>Token rotieren (scoped)</button>}
               {tokenMsg && <div className="result ok" style={{ marginTop: 8, wordBreak: "break-all", fontSize: 11 }}>{tokenMsg}</div>}
             </div>
+          </div>
+
+          <div className="card2" style={{ marginTop: 14 }}>
+            <div className="ct">Runtime / Adapter <span className="ln" /></div>
+            <div className="rl" style={{ marginBottom: 8 }}>
+              Womit dieser Agent läuft. Für „in-app per Claude": Adapter <b>claude_local</b> wählen und unten das Secret
+              <span className="mono"> ANTHROPIC_API_KEY</span> binden.
+            </div>
+            <div className="kv">
+              <span className="k">Adapter</span>
+              <select value={rtType} onChange={(e) => setRtType(e.target.value)}
+                style={{ background: "rgba(0,0,0,.3)", color: "var(--tx)", border: "1px solid var(--stroke2)", borderRadius: 8, padding: "3px 8px", fontFamily: "inherit", fontSize: 12 }}>
+                {["internal", "claude_local", "http", "process", "openai", "mcp"].map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+            <div className="fld"><label>Konfiguration (JSON)</label>
+              <textarea rows={5} value={rtConfig} onChange={(e) => setRtConfig(e.target.value)} style={{ fontFamily: "ui-monospace,monospace", fontSize: 12 }} />
+            </div>
+            {rtType === "claude_local" && (
+              <div className="rl" style={{ marginBottom: 8 }}>
+                Beispiel: {`{ "model": "claude-sonnet-4-6", "maxTokens": 1024, "apiKeyEnv": "ANTHROPIC_API_KEY" }`}
+              </div>
+            )}
+            <button className="btn" onClick={saveRuntime}>Runtime speichern</button>
+            {rtMsg && <div className="rl" style={{ marginTop: 8 }}>{rtMsg}</div>}
           </div>
 
           <div className="card2" style={{ marginTop: 14 }}>
