@@ -26,6 +26,14 @@ export function SettingsView({
   const [keyInfo, setKeyInfo] = useState<{ hasKey: boolean; hint: string | null } | null>(null);
   const [newKey, setNewKey] = useState<string | null>(null);
   const [onDevice, setOnDevice] = useState(!!getLocalKey());
+  const [copied, setCopied] = useState(false);
+
+  function copyKey() {
+    if (!newKey) return;
+    navigator.clipboard?.writeText(newKey);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1600);
+  }
 
   const isBoard = !authEnabled || (me?.roleKeys ?? []).some((r) => r === "board" || r === "admin");
 
@@ -193,7 +201,7 @@ export function SettingsView({
             <div className="rl" style={{ marginBottom: 4 }}>Neuer Key (nur jetzt sichtbar):</div>
             <input readOnly value={newKey} onFocus={(e) => e.currentTarget.select()} style={{ width: "100%", fontFamily: "monospace", fontSize: 12 }} />
             <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-              <button className="mini-btn" onClick={() => navigator.clipboard?.writeText(newKey)}>Kopieren</button>
+              <button className={"mini-btn" + (copied ? " copied" : "")} onClick={copyKey}>{copied ? "Kopiert ✓" : "Kopieren"}</button>
               <button className="mini-btn" onClick={saveOnDevice}>Auf diesem Gerät speichern</button>
             </div>
           </div>

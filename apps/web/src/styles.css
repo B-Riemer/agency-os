@@ -78,6 +78,11 @@ body{color:var(--tx);font:13.5px/1.55 ui-sans-serif,-apple-system,BlinkMacSystem
 .approval{display:flex;align-items:center;gap:12px;padding:12px 13px;border:1px solid var(--stroke);border-radius:12px;background:var(--glass);margin-bottom:9px}
 .mini-btn{padding:7px 13px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--stroke2)}
 .mini-btn.ok{background:rgba(62,229,163,.16);color:#8df0c6}.mini-btn.no{background:rgba(255,122,122,.12);color:#ffb3b3}
+/* Sichtbares Klick-Feedback für alle Buttons (Press-Animation) */
+.btn,.mini-btn,.hirebtn{transition:transform .07s ease,filter .15s ease,box-shadow .15s ease}
+.btn:hover,.mini-btn:hover,.hirebtn:hover{filter:brightness(1.08)}
+.btn:active,.mini-btn:active,.hirebtn:active{transform:translateY(1px) scale(.97);filter:brightness(1.2)}
+.btn.copied,.mini-btn.copied{background:rgba(62,229,163,.18);color:#8df0c6;border-color:rgba(62,229,163,.5)}
 .steps{display:flex;gap:10px;margin:6px 0 18px}
 .stp{flex:1;display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:12px;border:1px solid var(--stroke);background:var(--glass);color:var(--tx3);font-size:12px}
 .stp.on{color:#fff;border-color:rgba(91,140,255,.6)}.stp .num{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;background:rgba(255,255,255,.07)}
@@ -89,7 +94,7 @@ body{color:var(--tx);font:13.5px/1.55 ui-sans-serif,-apple-system,BlinkMacSystem
 
 /* --- Org-Screen (Prototyp-Niveau) --- */
 .orgwrap{position:relative;min-height:100%}
-#wires{position:absolute;inset:0;pointer-events:none;z-index:0}
+#wires{position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.45}
 .orgwrap > *:not(#wires){position:relative;z-index:1}
 .ceorow{display:flex;align-items:center;justify-content:center;gap:26px;margin:14px 0 54px}
 .emblem-wrap{position:relative;display:grid;place-items:center;width:154px;height:154px;flex:none}

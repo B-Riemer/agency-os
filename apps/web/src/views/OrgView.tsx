@@ -98,18 +98,25 @@ export function OrgView({
     const ex = ec.left - o.left + wrap.scrollLeft + ec.width / 2;
     const eb = ec.bottom - o.top + wrap.scrollTop;
     const busY = eb + 30;
-    let g = `<path d="M ${ex} ${eb} L ${ex} ${busY}" stroke="url(#wg)" stroke-width="2.6" fill="none"/>`;
-    let dots = `<circle cx="${ex}" cy="${busY}" r="3.4" fill="#bcd3ff"/>`;
-    deptRefs.current.forEach((el) => {
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      const cx = r.left - o.left + wrap.scrollLeft + r.width / 2;
-      const ty = r.top - o.top + wrap.scrollTop;
-      g += `<path d="M ${ex} ${busY} C ${cx} ${busY}, ${cx} ${busY}, ${cx} ${ty}" stroke="url(#wg)" stroke-width="2.2" fill="none"/>`;
-      dots += `<circle cx="${cx}" cy="${ty}" r="3.2" fill="#9bbcff"/>`;
+    let g = `<path d="M ${ex} ${eb} L ${ex} ${busY}" stroke="url(#wg)" stroke-width="1.8" fill="none"/>`;
+    let dots = `<circle cx="${ex}" cy="${busY}" r="3.2" fill="#bcd3ff"/>`;
+    const cards = deptRefs.current
+      .filter((el): el is HTMLDivElement => !!el)
+      .map((el) => {
+        const r = el.getBoundingClientRect();
+        return { cx: r.left - o.left + wrap.scrollLeft + r.width / 2, ty: r.top - o.top + wrap.scrollTop };
+      });
+    const minTy = cards.length ? Math.min(...cards.map((c) => c.ty)) : 0;
+    cards.forEach(({ cx, ty }) => {
+      // Zweite Reihe blasser/dünner ziehen, damit die Linie nicht über die obere Reihe „greift".
+      const lower = ty > minTy + 40;
+      const op = lower ? 0.3 : 1;
+      const w = lower ? 1.4 : 1.8;
+      g += `<path d="M ${ex} ${busY} C ${cx} ${busY}, ${cx} ${busY}, ${cx} ${ty}" stroke="url(#wg)" stroke-width="${w}" stroke-opacity="${op}" fill="none"/>`;
+      dots += `<circle cx="${cx}" cy="${ty}" r="3" fill="#9bbcff" fill-opacity="${lower ? 0.5 : 1}"/>`;
     });
     setSvg(
-      `<defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fb0ff" stop-opacity="1"/><stop offset="1" stop-color="#9b6bff" stop-opacity=".7"/></linearGradient><filter id="gl" x="-25%" y="-25%" width="150%" height="150%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g filter="url(#gl)">${g}${dots}</g>`,
+      `<defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fb0ff" stop-opacity="1"/><stop offset="1" stop-color="#9b6bff" stop-opacity=".7"/></linearGradient><filter id="gl" x="-25%" y="-25%" width="150%" height="150%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g filter="url(#gl)">${g}${dots}</g>`,
     );
   }
 
