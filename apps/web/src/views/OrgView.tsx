@@ -42,6 +42,10 @@ export function OrgView({
 }) {
   const [newDept, setNewDept] = useState("");
   const [busy, setBusy] = useState(false);
+  const [editDeptId, setEditDeptId] = useState<string | null>(null);
+  const [editDeptName, setEditDeptName] = useState("");
+  const [renaming, setRenaming] = useState(false);
+  const [nameDraft, setNameDraft] = useState(companyName);
 
   async function addDept() {
     const name = newDept.trim();
@@ -55,8 +59,13 @@ export function OrgView({
       setBusy(false);
     }
   }
-  async function renameDept(d: Department) {
-    const name = window.prompt("Neuer Name der Abteilung:", d.name);
+  function startEditDept(d: Department) {
+    setEditDeptId(d.id);
+    setEditDeptName(d.name);
+  }
+  async function saveDept(d: Department) {
+    const name = editDeptName.trim();
+    setEditDeptId(null);
     if (!name || name === d.name) return;
     await api.updateDepartment(companyId, d.id, { name });
     onChanged();
@@ -66,8 +75,9 @@ export function OrgView({
     await api.deleteDepartment(companyId, d.id);
     onChanged();
   }
-  async function renameCompany() {
-    const name = window.prompt("Name der Company:", companyName);
+  async function saveCompanyName() {
+    const name = nameDraft.trim();
+    setRenaming(false);
     if (!name || name === companyName) return;
     await api.renameCompany(companyId, name);
     onChanged();
@@ -137,7 +147,7 @@ export function OrgView({
   return (
     <div className="orgwrap" ref={wrapRef}>
       <svg id="wires" width={dims.w} height={dims.h} dangerouslySetInnerHTML={{ __html: svg }} />
-      <div className="h2">Firmenstruktur</div>
+      <div className="h2">{companyName}</div>
       <div className="sub">Eine Company aus KI-Mitarbeitern — intern erstellt und extern eingebunden. Klick einen Agenten für die Personalakte.</div>
       <div className="ceorow" style={{ cursor: ceo ? "pointer" : "default" }} onClick={() => ceo && onSelect(ceo)}>
         <div className="emblem-wrap" ref={emblemRef} dangerouslySetInnerHTML={{ __html: EMBLEM }} />
@@ -169,7 +179,20 @@ export function OrgView({
         <div className="ct">Abteilungen verwalten <span className="ln" /></div>
         <div className="kv" style={{ marginBottom: 10 }}>
           <span className="k">Company</span>
-          <span className="v">{companyName} <span className="mini-btn" style={{ marginLeft: 8 }} onClick={renameCompany}>umbenennen</span></span>
+          <span className="v">
+            {renaming ? (
+              <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+                <input value={nameDraft} autoFocus onChange={(e) => setNameDraft(e.target.value)}
+                  onKeyDown={(e) => (e.key === "Enter" ? saveCompanyName() : e.key === "Escape" ? setRenaming(false) : null)} style={{ minWidth: 160 }} />
+                <span className="mini-btn" onClick={saveCompanyName}>Speichern</span>
+                <span className="mini-btn" onClick={() => setRenaming(false)}>Abbrechen</span>
+              </span>
+            ) : (
+              <>
+                {companyName} <span className="mini-btn" style={{ marginLeft: 8 }} onClick={() => { setNameDraft(companyName); setRenaming(true); }}>umbenennen</span>
+              </>
+            )}
+          </span>
         </div>
         <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
           <input
@@ -183,11 +206,22 @@ export function OrgView({
         </div>
         {departments.map((d) => (
           <div className="acc" key={d.id}>
-            <span>{d.name} <span className="etime">· {d.key} · {agents.filter((a) => a.departmentId === d.id).length} Agenten</span></span>
-            <span style={{ display: "flex", gap: 10 }}>
-              <span className="mini-btn" onClick={() => renameDept(d)}>Umbenennen</span>
-              <span className="mini-btn" onClick={() => removeDept(d)}>Löschen</span>
-            </span>
+            {editDeptId === d.id ? (
+              <span style={{ display: "inline-flex", gap: 6, alignItems: "center", flex: 1 }}>
+                <input value={editDeptName} autoFocus onChange={(e) => setEditDeptName(e.target.value)}
+                  onKeyDown={(e) => (e.key === "Enter" ? saveDept(d) : e.key === "Escape" ? setEditDeptId(null) : null)} style={{ flex: 1 }} />
+                <span className="mini-btn" onClick={() => saveDept(d)}>Speichern</span>
+                <span className="mini-btn" onClick={() => setEditDeptId(null)}>Abbrechen</span>
+              </span>
+            ) : (
+              <>
+                <span>{d.name} <span className="etime">· {d.key} · {agents.filter((a) => a.departmentId === d.id).length} Agenten</span></span>
+                <span style={{ display: "flex", gap: 10 }}>
+                  <span className="mini-btn" onClick={() => startEditDept(d)}>Umbenennen</span>
+                  <span className="mini-btn" onClick={() => removeDept(d)}>Löschen</span>
+                </span>
+              </>
+            )}
           </div>
         ))}
         <div className="rl" style={{ marginTop: 8 }}>Beim Löschen bleiben zugewiesene Agenten erhalten (dann „ohne Abteilung"). Agenten fügst du über „+ Agent einstellen" hinzu und ordnest sie der Abteilung zu.</div>

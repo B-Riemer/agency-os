@@ -119,10 +119,16 @@ export function SettingsView({
     flash("API-Key von diesem Gerät entfernt.");
   }
 
-  async function renameCompany() {
-    const name = window.prompt("Name der Company:", companyName);
-    if (!name || name === companyName) return;
+  const [renaming, setRenaming] = useState(false);
+  const [nameDraft, setNameDraft] = useState(companyName);
+  async function saveCompanyName() {
+    const name = nameDraft.trim();
+    if (!name || name === companyName) {
+      setRenaming(false);
+      return;
+    }
     await api.renameCompany(companyId, name);
+    setRenaming(false);
     onChanged();
     flash("Company umbenannt.");
   }
@@ -248,7 +254,29 @@ export function SettingsView({
       {/* 3) Company & Portabilität */}
       <div className="card2" style={{ marginTop: 18 }}>
         <div className="ct">Company &amp; Portabilität <span className="ln" /></div>
-        <div className="kv"><span className="k">Company</span><span className="v">{companyName} <span className="mini-btn" style={{ marginLeft: 8 }} onClick={renameCompany}>umbenennen</span></span></div>
+        <div className="kv">
+          <span className="k">Company</span>
+          <span className="v">
+            {renaming ? (
+              <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+                <input
+                  value={nameDraft}
+                  autoFocus
+                  onChange={(e) => setNameDraft(e.target.value)}
+                  onKeyDown={(e) => (e.key === "Enter" ? saveCompanyName() : e.key === "Escape" ? setRenaming(false) : null)}
+                  style={{ minWidth: 180 }}
+                />
+                <span className="mini-btn" onClick={saveCompanyName}>Speichern</span>
+                <span className="mini-btn" onClick={() => { setRenaming(false); setNameDraft(companyName); }}>Abbrechen</span>
+              </span>
+            ) : (
+              <>
+                {companyName}{" "}
+                <span className="mini-btn" style={{ marginLeft: 8 }} onClick={() => { setNameDraft(companyName); setRenaming(true); }}>umbenennen</span>
+              </>
+            )}
+          </span>
+        </div>
         <div style={{ marginTop: 10, marginBottom: 12 }}>
           <button className="btn" onClick={doExport}>⤓ Export (Manifest-JSON)</button>
         </div>
